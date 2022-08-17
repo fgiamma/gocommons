@@ -32,6 +32,7 @@ import (
 	"gorm.io/datatypes"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
@@ -318,7 +319,19 @@ func CheckMultipleValues(tableName string, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	db, err := gorm.Open(mysql.Open(Dsn), &gorm.Config{})
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		logger.Config{
+			SlowThreshold:             time.Second,  // Slow SQL threshold
+			LogLevel:                  logger.Error, // Log level
+			IgnoreRecordNotFoundError: true,         // Ignore ErrRecordNotFound error for logger
+			Colorful:                  false,        // Disable color
+		},
+	)
+
+	db, err := gorm.Open(mysql.Open(Dsn), &gorm.Config{
+		Logger: newLogger,
+	})
 
 	if err != nil {
 		WriteInvalidResponse(w, "ko", "Error opening the database")
@@ -390,7 +403,19 @@ func DeleteItem(tableName string, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, err := gorm.Open(mysql.Open(Dsn), &gorm.Config{})
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		logger.Config{
+			SlowThreshold:             time.Second,  // Slow SQL threshold
+			LogLevel:                  logger.Error, // Log level
+			IgnoreRecordNotFoundError: true,         // Ignore ErrRecordNotFound error for logger
+			Colorful:                  false,        // Disable color
+		},
+	)
+
+	db, err := gorm.Open(mysql.Open(Dsn), &gorm.Config{
+		Logger: newLogger,
+	})
 
 	if err != nil {
 		WriteInvalidResponse(w, "ko", "Error opening the database")
@@ -506,9 +531,21 @@ func GetDb(config Config) (*gorm.DB, error) {
 		return nil, errors.New("can't create database")
 	}
 
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		logger.Config{
+			SlowThreshold:             time.Second,  // Slow SQL threshold
+			LogLevel:                  logger.Error, // Log level
+			IgnoreRecordNotFoundError: true,         // Ignore ErrRecordNotFound error for logger
+			Colorful:                  false,        // Disable color
+		},
+	)
+
 	db, err := gorm.Open(mysql.New(mysql.Config{
 		Conn: mysqlDb,
-	}), &gorm.Config{})
+	}), &gorm.Config{
+		Logger: newLogger,
+	})
 
 	if err != nil {
 		return nil, errors.New("can't create GORM database")
@@ -520,19 +557,6 @@ func GetDb(config Config) (*gorm.DB, error) {
 func GetDbData(config Config) (*gorm.DB, *sql.DB, error) {
 	Dsn = config.Database.Username + ":" + config.Database.Password + "@tcp(" + config.Database.Host + ":" + config.Database.Port + ")/" + config.Database.DatabaseName + "?charset=utf8mb4&parseTime=True&loc=Local"
 
-	// // Create main database DSN and open db
-	// db, err := gorm.Open(mysql.Open(Dsn), &gorm.Config{})
-
-	// if err != nil {
-	// 	return nil, nil, errors.New("error opening database")
-	// }
-
-	// sqlDB, err := db.DB()
-	// if err != nil {
-	// 	return nil, nil, errors.New("error getting sql db")
-	// }
-
-	// return db, sqlDB, nil
 	return actualGetDbData()
 }
 
@@ -541,8 +565,20 @@ func GetDbDataWithoutConfig() (*gorm.DB, *sql.DB, error) {
 }
 
 func actualGetDbData() (*gorm.DB, *sql.DB, error) {
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		logger.Config{
+			SlowThreshold:             time.Second,  // Slow SQL threshold
+			LogLevel:                  logger.Error, // Log level
+			IgnoreRecordNotFoundError: true,         // Ignore ErrRecordNotFound error for logger
+			Colorful:                  false,        // Disable color
+		},
+	)
+
 	// Create main database DSN and open db
-	db, err := gorm.Open(mysql.Open(Dsn), &gorm.Config{})
+	db, err := gorm.Open(mysql.Open(Dsn), &gorm.Config{
+		Logger: newLogger,
+	})
 
 	if err != nil {
 		return nil, nil, errors.New("error opening database")
@@ -786,7 +822,19 @@ func InitData(configFolder string) (ConfigData, *gorm.DB, *sql.DB, error) {
 	dbPort := strconv.Itoa(conf.Database.Port)
 	dsn := conf.Database.Username + ":" + conf.Database.Password + "@tcp(" + conf.Database.Server + ":" + dbPort + ")/" + conf.Database.Dbname + "?charset=utf8mb4&parseTime=True&loc=Local"
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		logger.Config{
+			SlowThreshold:             time.Second,  // Slow SQL threshold
+			LogLevel:                  logger.Error, // Log level
+			IgnoreRecordNotFoundError: true,         // Ignore ErrRecordNotFound error for logger
+			Colorful:                  false,        // Disable color
+		},
+	)
+
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		Logger: newLogger,
+	})
 
 	if err != nil {
 		return ConfigData{}, nil, nil, err
