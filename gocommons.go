@@ -922,3 +922,7 @@ func InitTranslationsAtStartupTime(db *gorm.DB, localeFilePosition string) (map[
 
 	return translations, nil
 }
+
+func JoinIntArrayToString(intArray []int, delim string) string {
+	return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(intArray)), delim), "[]")
+}
