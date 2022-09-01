@@ -153,6 +153,9 @@ type Translation struct {
 	LangValue string `json:"lang_value"`
 }
 
+type LogWriter struct {
+}
+
 var DateLayout string = "2006-01-02 15:04:05"
 var CompactDateLayout string = "20060102150405"
 
@@ -933,4 +936,8 @@ func InitTranslationsAtStartupTime(db *gorm.DB, localeFilePosition string) (map[
 
 func JoinIntArrayToString(intArray []int, delim string) string {
 	return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(intArray)), delim), "[]")
+}
+
+func (writer LogWriter) Write(bytes []byte) (int, error) {
+	return fmt.Print(time.Now().Format("2006-01-02 15:04:05") + " " + string(bytes))
 }
