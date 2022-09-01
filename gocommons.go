@@ -201,10 +201,11 @@ func AllowCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Headers", "token, Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 }
 
-func WriteResponse(w http.ResponseWriter, ro ResponseObject) {
+func WriteResponse(w http.ResponseWriter, ro ResponseObject, status int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.WriteHeader(http.StatusOK)
+	// w.WriteHeader(http.StatusOK)
+	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(ro)
 }
 
@@ -256,14 +257,21 @@ func WriteInvalidResponse(w http.ResponseWriter, code string, message string) {
 	var ro *ResponseObject = new(ResponseObject)
 	ro.Code = code
 	ro.Data = message
-	WriteResponse(w, *ro)
+	WriteResponse(w, *ro, http.StatusOK)
+}
+
+func WriteInvalidResponseWithStatus(w http.ResponseWriter, code string, message string, status int) {
+	var ro *ResponseObject = new(ResponseObject)
+	ro.Code = code
+	ro.Data = message
+	WriteResponse(w, *ro, status)
 }
 
 func WriteValidResponse(w http.ResponseWriter, code string, message any) {
 	var ro *ResponseObject = new(ResponseObject)
 	ro.Code = code
 	ro.Data = message
-	WriteResponse(w, *ro)
+	WriteResponse(w, *ro, http.StatusOK)
 }
 
 func GetDbParameter(db *gorm.DB, parameterName string) string {
@@ -387,7 +395,7 @@ func CheckMultipleValues(tableName string, w http.ResponseWriter, r *http.Reques
 	var ro *ResponseObject = new(ResponseObject)
 	ro.Code = "ok"
 	ro.Data = checkResults
-	WriteResponse(w, *ro)
+	WriteResponse(w, *ro, http.StatusOK)
 }
 
 func DeleteItem(tableName string, w http.ResponseWriter, r *http.Request) {
@@ -460,7 +468,7 @@ func DeleteItem(tableName string, w http.ResponseWriter, r *http.Request) {
 	var ro *ResponseObject = new(ResponseObject)
 	ro.Code = "ok"
 	ro.Data = "Operation completed"
-	WriteResponse(w, *ro)
+	WriteResponse(w, *ro, http.StatusOK)
 }
 
 func stringWithCharset(length int, charset string) string {
