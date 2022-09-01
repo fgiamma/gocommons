@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"html/template"
+	"io"
 	"regexp"
 	"strconv"
 
@@ -13,7 +14,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
@@ -204,14 +204,14 @@ func AllowCors(w *http.ResponseWriter) {
 func WriteResponse(w http.ResponseWriter, ro ResponseObject) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(ro)
 }
 
 func WriteListResponse(w http.ResponseWriter, lro ListResponseObject) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(lro)
 }
 
@@ -248,7 +248,7 @@ func GetJsonFromFile(fileName string) ([]byte, error) {
 	// defer the closing of our jsonFile so that we can parse it later on
 	defer jsonFile.Close()
 
-	jsonData, err := ioutil.ReadAll(jsonFile)
+	jsonData, err := io.ReadAll(jsonFile)
 	return jsonData, err
 }
 
@@ -351,7 +351,7 @@ func CheckMultipleValues(tableName string, w http.ResponseWriter, r *http.Reques
 
 	// Read request body
 	var checks CheckArray
-	reqBody, _ := ioutil.ReadAll(r.Body)
+	reqBody, _ := io.ReadAll(r.Body)
 	json.Unmarshal(reqBody, &checks)
 
 	var extraSql string = ""
@@ -437,7 +437,7 @@ func DeleteItem(tableName string, w http.ResponseWriter, r *http.Request) {
 
 	// Read request body
 	var itemToBeDeleted ItemToBeDeleted
-	reqBody, _ := ioutil.ReadAll(r.Body)
+	reqBody, _ := io.ReadAll(r.Body)
 	json.Unmarshal(reqBody, &itemToBeDeleted)
 
 	if itemToBeDeleted.Uniqueid == "" {
@@ -508,7 +508,7 @@ func GetDb(config Config) (*gorm.DB, error) {
 		cfg.TLSConfig = "custom"
 
 		rootCertPool := x509.NewCertPool()
-		pem, err := ioutil.ReadFile(config.Database.SslCertificate)
+		pem, err := os.ReadFile(config.Database.SslCertificate)
 		if err != nil {
 			log.Fatal(err)
 		}
