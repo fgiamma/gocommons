@@ -700,13 +700,13 @@ func InitListParameters(r *http.Request) (map[string]interface{}, map[string]int
 		page = 0
 	}
 
-	pageSize, err := strconv.Atoi(r.URL.Query().Get("pageSize"))
+	pageSize, err := strconv.Atoi(r.URL.Query().Get("page_size"))
 	if err != nil {
 		pageSize = 10
 	}
 
-	sortColumn := r.URL.Query().Get("sortColumn")
-	sortOrder := r.URL.Query().Get("sortOrder")
+	sortColumn := r.URL.Query().Get("sort_column")
+	sortOrder := r.URL.Query().Get("sort_order")
 
 	// Search parameters
 	whereCondition := "WHERE 1=@dummy"
