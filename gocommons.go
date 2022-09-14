@@ -694,7 +694,7 @@ func StringReplacer(templateString string, elements map[string]interface{}) stri
 }
 
 func InitListParameters(r *http.Request) (map[string]interface{}, map[string]interface{}) {
-	// Get list query parameters
+	// Get list query parameters (lower case)
 	page, err := strconv.Atoi(r.URL.Query().Get("page"))
 	if err != nil {
 		page = 0
