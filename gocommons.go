@@ -414,9 +414,6 @@ func CheckMultipleValues(db *gorm.DB, tableName string, w http.ResponseWriter, r
 		extraSql = " AND uniqueid <> '" + checks.Uid + "'"
 	}
 
-	fmt.Println(checks)
-	fmt.Println(extraSql)
-
 	checkResults := make([]CheckResult, 0)
 
 	for i := 0; i < len(checks.Checks); i++ {
