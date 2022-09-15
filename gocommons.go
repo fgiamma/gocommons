@@ -310,72 +310,119 @@ func ValidateToken(db *gorm.DB, token string) bool {
 	}
 }
 
-func CheckMultipleValues(tableName string, w http.ResponseWriter, r *http.Request) {
-	AllowCors(&w)
+// func CheckMultipleValues(tableName string, w http.ResponseWriter, r *http.Request) {
+// 	AllowCors(&w)
 
-	if (*r).Method == "OPTIONS" {
-		return
-	}
+// 	if (*r).Method == "OPTIONS" {
+// 		return
+// 	}
 
-	// Check method type
-	if r.Method != "POST" {
-		WriteInvalidResponse(w, "ko", "Invalid data")
-		return
-	}
+// 	// Check method type
+// 	if r.Method != "POST" {
+// 		WriteInvalidResponse(w, "ko", "Invalid data")
+// 		return
+// 	}
 
-	// Check and validate token
-	token := r.Header.Get("token")
-	if token == "" {
-		WriteInvalidResponse(w, "ko", "Invalid token")
-		return
-	}
+// 	// Check and validate token
+// 	token := r.Header.Get("token")
+// 	if token == "" {
+// 		WriteInvalidResponse(w, "ko", "Invalid token")
+// 		return
+// 	}
 
-	newLogger := logger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-		logger.Config{
-			SlowThreshold:             time.Second,  // Slow SQL threshold
-			LogLevel:                  logger.Error, // Log level
-			IgnoreRecordNotFoundError: true,         // Ignore ErrRecordNotFound error for logger
-			Colorful:                  false,        // Disable color
-		},
-	)
+// 	newLogger := logger.New(
+// 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+// 		logger.Config{
+// 			SlowThreshold:             time.Second,  // Slow SQL threshold
+// 			LogLevel:                  logger.Error, // Log level
+// 			IgnoreRecordNotFoundError: true,         // Ignore ErrRecordNotFound error for logger
+// 			Colorful:                  false,        // Disable color
+// 		},
+// 	)
 
-	db, err := gorm.Open(mysql.Open(Dsn), &gorm.Config{
-		Logger: newLogger,
-	})
+// 	db, err := gorm.Open(mysql.Open(Dsn), &gorm.Config{
+// 		Logger: newLogger,
+// 	})
 
-	if err != nil {
-		WriteInvalidResponse(w, "ko", "Error opening the database")
-		return
-	}
+// 	if err != nil {
+// 		WriteInvalidResponse(w, "ko", "Error opening the database")
+// 		return
+// 	}
 
-	sqlDB, err := db.DB()
-	if err != nil {
-		log.Println("Error requesting late db close")
-	}
-	defer sqlDB.Close()
+// 	sqlDB, err := db.DB()
+// 	if err != nil {
+// 		log.Println("Error requesting late db close")
+// 	}
+// 	defer sqlDB.Close()
 
-	if !ValidateToken(db, token) {
-		WriteInvalidResponse(w, "ko-999", "Invalid token")
-		return
-	}
+// 	if !ValidateToken(db, token) {
+// 		WriteInvalidResponse(w, "ko-999", "Invalid token")
+// 		return
+// 	}
 
-	// Read request body
+// 	// Read request body
+// 	var checks CheckArray
+// 	reqBody, _ := io.ReadAll(r.Body)
+// 	json.Unmarshal(reqBody, &checks)
+
+// 	var extraSql string = ""
+// 	if checks.Uid != "" {
+// 		extraSql = " AND uniqueid <> '" + checks.Uid + "'"
+// 	}
+
+// 	checkResults := make([]CheckResult, 0)
+
+// 	for i := 0; i < len(checks.Checks); i++ {
+// 		item := checks.Checks[i]
+// 		if item.Key == "" || item.Value == "" {
+// 			WriteInvalidResponse(w, "ko", "Error opening the database")
+// 			return
+// 		}
+
+// 		sql := "SELECT COUNT(*) FROM " + tableName + " WHERE " + item.Key + "='" + item.Value + "'" + extraSql + ";"
+// 		var counter int
+// 		db.Raw(sql).Scan(&counter)
+
+// 		var returnValue bool = true
+// 		if counter > 0 {
+// 			returnValue = false
+// 		}
+
+// 		var checkResult *CheckResult = new(CheckResult)
+// 		checkResult.Key = item.Key
+// 		checkResult.ReturnValue = returnValue
+
+// 		checkResults = append(checkResults, *checkResult)
+// 	}
+
+// 	var ro *ResponseObject = new(ResponseObject)
+// 	ro.Code = "ok"
+// 	ro.Data = checkResults
+// 	WriteResponse(w, *ro, http.StatusOK)
+// }
+
+func CheckMultipleValues(db *gorm.DB, tableName string, w http.ResponseWriter, r *http.Request) {
 	var checks CheckArray
-	reqBody, _ := io.ReadAll(r.Body)
-	json.Unmarshal(reqBody, &checks)
+	err := json.NewDecoder(r.Body).Decode(&checks)
+	if err != nil {
+		WriteInvalidResponse(w, "ko", "Error decoding params")
+		return
+	}
 
 	var extraSql string = ""
 	if checks.Uid != "" {
 		extraSql = " AND uniqueid <> '" + checks.Uid + "'"
 	}
 
+	fmt.Println(checks)
+	fmt.Println(extraSql)
+
 	checkResults := make([]CheckResult, 0)
 
 	for i := 0; i < len(checks.Checks); i++ {
 		item := checks.Checks[i]
 		if item.Key == "" || item.Value == "" {
-			WriteInvalidResponse(w, "ko", "Error opening the database")
+			WriteInvalidResponse(w, "ko", "Error evaluating items")
 			return
 		}
 
@@ -395,10 +442,10 @@ func CheckMultipleValues(tableName string, w http.ResponseWriter, r *http.Reques
 		checkResults = append(checkResults, *checkResult)
 	}
 
-	var ro *ResponseObject = new(ResponseObject)
-	ro.Code = "ok"
-	ro.Data = checkResults
-	WriteResponse(w, *ro, http.StatusOK)
+	returnObject := make(map[string]interface{})
+	returnObject["element"] = checkResults
+
+	WriteValidResponse(w, "ok", returnObject)
 }
 
 func DeleteItem(tableName string, w http.ResponseWriter, r *http.Request) {
