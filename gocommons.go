@@ -314,7 +314,7 @@ func CheckMultipleValues(db *gorm.DB, tableName string, w http.ResponseWriter, r
 	var checks CheckArray
 	err := json.NewDecoder(r.Body).Decode(&checks)
 	if err != nil {
-		gocommons.WriteInvalidResponse(w, "ko", "Error decoding params")
+		WriteInvalidResponse(w, "ko", "Error decoding params")
 		return
 	}
 
@@ -328,7 +328,7 @@ func CheckMultipleValues(db *gorm.DB, tableName string, w http.ResponseWriter, r
 	for i := 0; i < len(checks.Checks); i++ {
 		item := checks.Checks[i]
 		if item.Key == "" || item.Value == "" {
-			gocommons.WriteInvalidResponse(w, "ko", "Error evaluating items")
+			WriteInvalidResponse(w, "ko", "Error evaluating items")
 			return
 		}
 
@@ -353,7 +353,7 @@ func CheckMultipleValues(db *gorm.DB, tableName string, w http.ResponseWriter, r
 	returnObject := make(map[string]interface{})
 	returnObject["element"] = checkResults
 
-	gocommons.WriteValidResponse(w, "ok", returnObject)
+	WriteValidResponse(w, "ok", returnObject)
 }
 
 func DeleteItem(tableName string, w http.ResponseWriter, r *http.Request) {
