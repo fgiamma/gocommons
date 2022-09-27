@@ -5,10 +5,10 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
-	"html/template"
 	"io"
 	"regexp"
 	"strconv"
+	"text/template"
 
 	"crypto/md5"
 	"encoding/hex"
