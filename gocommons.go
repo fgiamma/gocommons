@@ -204,7 +204,7 @@ func AllowCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Headers", "token, Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 }
 
-func WriteResponse(w http.ResponseWriter, ro ResponseObject, status int) {
+func WriteResponse(w http.ResponseWriter, ro any, status int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	// w.WriteHeader(http.StatusOK)
