@@ -161,12 +161,12 @@ var CompactDateLayout string = "20060102150405"
 
 var Dsn string
 
-func TimeIn(name string, utcTime time.Time) time.Time {
+func TimeIn(name string, utcTime time.Time) (time.Time, error) {
 	loc, err := time.LoadLocation(countryTz[name])
 	if err != nil {
-		panic(err)
+		return time.Time{}, err
 	}
-	return utcTime.In(loc)
+	return utcTime.In(loc), nil
 }
 
 func GetUid() string {
