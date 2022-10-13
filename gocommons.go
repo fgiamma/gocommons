@@ -896,3 +896,11 @@ func JoinIntArrayToString(intArray []int, delim string) string {
 func (writer LogWriter) Write(bytes []byte) (int, error) {
 	return fmt.Print(time.Now().Format("2006-01-02 15:04:05") + " " + string(bytes))
 }
+
+func GetIntPointerValue(value int) *int {
+	if value == 0 {
+		return nil
+	}
+
+	return &value
+}
