@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"io"
+	"reflect"
 	"regexp"
 	"strconv"
 	"text/template"
@@ -897,10 +898,27 @@ func (writer LogWriter) Write(bytes []byte) (int, error) {
 	return fmt.Print(time.Now().Format("2006-01-02 15:04:05") + " " + string(bytes))
 }
 
-func GetIntPointerValue(value int) *int {
-	if value == 0 {
+func GetIntPointerValue(data any, fieldName string) *int {
+	pointToStruct := reflect.ValueOf(data)
+	curStruct := pointToStruct.Elem()
+
+	if curStruct.Kind() != reflect.Struct {
+		return nil
+	}
+	curField := curStruct.FieldByName(fieldName)
+	if !curField.IsValid() {
 		return nil
 	}
 
-	return &value
+	if curField.Elem().CanInt() {
+		elem := curField.Elem()
+		if elem.Int() == 0 {
+			return nil
+		} else {
+			value := int(elem.Int())
+			return &value
+		}
+	}
+
+	return nil
 }
