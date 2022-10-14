@@ -900,6 +900,11 @@ func (writer LogWriter) Write(bytes []byte) (int, error) {
 
 func GetIntPointerValue(data any, fieldName string) *int {
 	pointToStruct := reflect.ValueOf(data)
+
+	if pointToStruct.Kind() != reflect.Pointer {
+		return nil
+	}
+
 	curStruct := pointToStruct.Elem()
 
 	if curStruct.Kind() != reflect.Struct {
