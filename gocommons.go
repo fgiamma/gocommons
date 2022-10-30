@@ -2,6 +2,8 @@ package gocommons
 
 import (
 	"context"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
@@ -12,11 +14,13 @@ import (
 	"text/template"
 
 	"crypto/md5"
+	cryptorand "crypto/rand"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
+
 	"net/http"
 	"net/smtp"
 	"os"
@@ -28,6 +32,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/alexedwards/scs/v2"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/scrypt"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"gorm.io/datatypes"
@@ -926,4 +931,90 @@ func GetIntPointerValue(data any, fieldName string) *int {
 	}
 
 	return nil
+}
+
+func AesEncrypt(textString string, key []byte) (string, error) {
+	text := []byte(textString)
+	// key := []byte(keyString)
+
+	// generate a new aes cipher using our 32 byte long key
+	c, err := aes.NewCipher(key)
+	// if there are any errors, handle them
+	if err != nil {
+		return "", err
+	}
+
+	// gcm or Galois/Counter Mode, is a mode of operation
+	// for symmetric key cryptographic block ciphers
+	// - https://en.wikipedia.org/wiki/Galois/Counter_Mode
+	gcm, err := cipher.NewGCM(c)
+	// if any error generating new GCM
+	// handle them
+	if err != nil {
+		return "", err
+	}
+
+	// creates a new byte array the size of the nonce
+	// which must be passed to Seal
+	nonce := make([]byte, gcm.NonceSize())
+	// populates our nonce with a cryptographically secure
+	// random sequence
+	if _, err = io.ReadFull(cryptorand.Reader, nonce); err != nil {
+		return "", err
+	}
+
+	// here we encrypt our text using the Seal function
+	// Seal encrypts and authenticates plaintext, authenticates the
+	// additional data and appends the result to dst, returning the updated
+	// slice. The nonce must be NonceSize() bytes long and unique for all
+	// time, for a given key.
+
+	encryptedBytes := gcm.Seal(nonce, nonce, text, nil)
+	encryptedString := hex.EncodeToString(encryptedBytes)
+
+	return encryptedString, nil
+
+}
+
+func AesDecrypt(encryptedString string, key []byte) (string, error) {
+	ciphertext, err := hex.DecodeString(encryptedString)
+	if err != nil {
+		return "", err
+	}
+	// key := []byte(keyString)
+
+	c, err := aes.NewCipher(key)
+	if err != nil {
+		return "", err
+	}
+
+	gcm, err := cipher.NewGCM(c)
+	if err != nil {
+		return "", err
+	}
+
+	nonceSize := gcm.NonceSize()
+	if len(ciphertext) < nonceSize {
+		return "", err
+	}
+
+	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
+	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return string(plaintext), nil
+}
+
+func Get32BytesKeyFromPassword(password string) ([]byte, error) {
+	salt := make([]byte, 8)
+	rand.Read(salt)
+
+	dk, err := scrypt.Key([]byte(password), salt, 1<<15, 8, 1, 32)
+	if err != nil {
+		return nil, err
+	}
+
+	return dk, nil
 }

@@ -10,6 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.2
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/uuid v1.3.0
+	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
 	golang.org/x/text v0.3.7
 	gorm.io/datatypes v1.0.7
 	gorm.io/driver/mysql v1.3.5
