@@ -451,6 +451,13 @@ func GetRandomString(length int) string {
 	return newString
 }
 
+func GetRandomLowercaseString(length int) string {
+	var charset string = "abcdefghijklmnopqrstuvwxyz0123456789"
+
+	newString := stringWithCharset(length, charset)
+	return newString
+}
+
 func LoadConfiguration(file string) Config {
 	var config Config
 	configFile, err := os.Open(file)
