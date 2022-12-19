@@ -693,6 +693,38 @@ func InitListParameters(r *http.Request) (map[string]interface{}, map[string]int
 	return data, params
 }
 
+func InitListParametersSpg(r *http.Request) (map[string]interface{}, map[string]interface{}) {
+	// Get list query parameters (lower case)
+	page, err := strconv.Atoi(r.URL.Query().Get("page"))
+	if err != nil {
+		page = 0
+	}
+
+	pageSize, err := strconv.Atoi(r.URL.Query().Get("page_size"))
+	if err != nil {
+		pageSize = 10
+	}
+
+	sortColumn := r.URL.Query().Get("sortColumn")
+	sortOrder := r.URL.Query().Get("sortOrder")
+
+	// Search parameters
+	whereCondition := "WHERE 1=@dummy"
+	params := make(map[string]interface{})
+	params["dummy"] = 1
+
+	data := map[string]interface{}{
+		"SortColumn":     sortColumn,
+		"SortOrder":      sortOrder,
+		"Page":           page,
+		"PageSize":       pageSize,
+		"StartLimit":     page * pageSize,
+		"WhereCondition": whereCondition,
+	}
+
+	return data, params
+}
+
 type S3PutObjectAPI interface {
 	PutObject(ctx context.Context,
 		params *s3.PutObjectInput,
