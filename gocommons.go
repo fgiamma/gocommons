@@ -1,6 +1,7 @@
 package gocommons
 
 import (
+	"bufio"
 	"context"
 	"crypto/aes"
 	"crypto/cipher"
@@ -40,6 +41,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -767,6 +769,101 @@ func SendToS3(s3data S3Data, objectName string) error {
 	}
 
 	return nil
+}
+
+func DownloadFromS3(s3data S3Data, objectName string) (string, error) {
+	cfg, err := config.LoadDefaultConfig(
+		context.TODO(), config.WithRegion(s3data.AwsRegionName),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(s3data.AwsAccessKeyId, s3data.AwsSecretAccessKey, "")))
+
+	if err != nil {
+		return "", errors.New("can't connect to Amazon S3")
+	}
+
+	// Create an Amazon S3 service client
+	client := s3.NewFromConfig(cfg)
+
+	result, err := client.GetObject(context.TODO(), &s3.GetObjectInput{
+		Bucket: aws.String(s3data.AwsBucketName),
+		Key:    aws.String(objectName),
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	pointPosition := strings.LastIndex(objectName, ".")
+	extension := objectName[pointPosition:]
+
+	fileName := fmt.Sprintf("/tmp/%s%s", GetUid(), extension)
+
+	defer result.Body.Close()
+	file, err := os.Create(fileName)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+	body, err := io.ReadAll(result.Body)
+	if err != nil {
+		return "", err
+	}
+	_, err = file.Write(body)
+
+	if err != nil {
+		return "", err
+	}
+
+	return fileName, nil
+}
+
+func GetFileContentType(fileName string) (string, error) {
+	// Open the file whose type you
+	// want to check
+	file, err := os.Open(fileName)
+
+	if err != nil {
+		panic(err)
+	}
+
+	defer file.Close()
+
+	// to sniff the content type only the first
+	// 512 bytes are used.
+
+	buf := make([]byte, 512)
+
+	_, err = file.Read(buf)
+
+	if err != nil {
+		return "", err
+	}
+
+	// the function that actually does the trick
+	contentType := http.DetectContentType(buf)
+
+	return contentType, nil
+}
+
+func GetFileContent(filename string) ([]byte, error) {
+	file, err := os.Open(filename)
+
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	stats, statsErr := file.Stat()
+	if statsErr != nil {
+		return nil, statsErr
+	}
+
+	var size int64 = stats.Size()
+	bytes := make([]byte, size)
+
+	bufr := bufio.NewReader(file)
+	_, err = bufr.Read(bytes)
+
+	return bytes, err
 }
 
 func GetTitleString(titleString string) string {
