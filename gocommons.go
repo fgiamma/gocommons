@@ -1154,3 +1154,51 @@ func Get32BytesKeyFromPassword(password string) ([]byte, error) {
 
 	return dk, nil
 }
+
+type S3DeleteObjectAPI interface {
+	DeleteObject(ctx context.Context,
+		params *s3.DeleteObjectInput,
+		optFns ...func(*s3.Options)) (*s3.DeleteObjectOutput, error)
+}
+
+// DeleteItem deletes an object from an Amazon Simple Storage Service (Amazon S3) bucket
+// Inputs:
+//
+//	c is the context of the method call, which includes the AWS Region
+//	api is the interface that defines the method call
+//	input defines the input arguments to the service call.
+//
+// Output:
+//
+//	If success, a DeleteObjectOutput object containing the result of the service call and nil
+//	Otherwise, an error from the call to DeleteObject
+func DeleteS3Item(c context.Context, api S3DeleteObjectAPI, input *s3.DeleteObjectInput) (*s3.DeleteObjectOutput, error) {
+	return api.DeleteObject(c, input)
+}
+
+func DeleteFromS3(s3data S3Data, objectName string) error {
+	cfg, err := config.LoadDefaultConfig(
+		context.TODO(), config.WithRegion(s3data.AwsRegionName),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(s3data.AwsAccessKeyId, s3data.AwsSecretAccessKey, "")))
+
+	if err != nil {
+		return errors.New("can't connect to Amazon S3")
+	}
+
+	// Create an Amazon S3 service client
+	client := s3.NewFromConfig(cfg)
+
+	// client.DeleteObject()
+
+	input := &s3.DeleteObjectInput{
+		Bucket: &s3data.AwsBucketName,
+		Key:    &objectName,
+	}
+
+	_, err = DeleteS3Item(context.TODO(), client, input)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
