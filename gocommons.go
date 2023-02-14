@@ -38,6 +38,7 @@ import (
 	"golang.org/x/text/language"
 	"gorm.io/datatypes"
 	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
@@ -941,6 +942,48 @@ func InitData(configFolder string) (ConfigData, *gorm.DB, *sql.DB, error) {
 	)
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		Logger: newLogger,
+	})
+
+	if err != nil {
+		return ConfigData{}, nil, nil, err
+	}
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		return ConfigData{}, nil, nil, err
+	}
+
+	if err = sqlDB.Ping(); err != nil {
+		return ConfigData{}, nil, nil, err
+	}
+
+	return conf, db, sqlDB, nil
+}
+
+func InitPostgresData(configFolder string) (ConfigData, *gorm.DB, *sql.DB, error) {
+	var conf ConfigData
+	conf, err := ReadConfig(configFolder+"config.toml", conf)
+
+	if err != nil {
+		return ConfigData{}, nil, nil, err
+	}
+
+	// Create database pool
+	dbPort := strconv.Itoa(conf.Database.Port)
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Europe/Rome", conf.Database.Server, conf.Database.Username, conf.Database.Password, conf.Database.Dbname, dbPort)
+
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		logger.Config{
+			SlowThreshold:             time.Second,  // Slow SQL threshold
+			LogLevel:                  logger.Error, // Log level
+			IgnoreRecordNotFoundError: true,         // Ignore ErrRecordNotFound error for logger
+			Colorful:                  false,        // Disable color
+		},
+	)
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		Logger: newLogger,
 	})
 

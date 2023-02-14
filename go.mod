@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/BurntSushi/toml v1.2.0
 	github.com/alexedwards/scs/v2 v2.5.0
+	github.com/aws/aws-sdk-go-v2 v1.16.8
 	github.com/aws/aws-sdk-go-v2/config v1.15.15
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.10
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.2
@@ -14,11 +15,11 @@ require (
 	golang.org/x/text v0.3.7
 	gorm.io/datatypes v1.0.7
 	gorm.io/driver/mysql v1.3.5
+	gorm.io/driver/postgres v1.3.4
 	gorm.io/gorm v1.23.8
 )
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.16.8 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.3 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.9 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.15 // indirect
@@ -32,6 +33,14 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sso v1.11.13 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.16.10 // indirect
 	github.com/aws/smithy-go v1.12.0 // indirect
+	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
+	github.com/jackc/pgconn v1.11.0 // indirect
+	github.com/jackc/pgio v1.0.0 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgproto3/v2 v2.2.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
+	github.com/jackc/pgtype v1.10.0 // indirect
+	github.com/jackc/pgx/v4 v4.15.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 )
