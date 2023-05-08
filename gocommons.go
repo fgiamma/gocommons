@@ -703,7 +703,7 @@ func InitListParametersSpg(r *http.Request) (map[string]interface{}, map[string]
 		page = 0
 	}
 
-	pageSize, err := strconv.Atoi(r.URL.Query().Get("page_size"))
+	pageSize, err := strconv.Atoi(r.URL.Query().Get("pageSize"))
 	if err != nil {
 		pageSize = 10
 	}
