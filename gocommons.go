@@ -1254,3 +1254,12 @@ func GetIntQueryStringParameter(r *http.Request, parameterName string) int {
 		return parameterValue
 	}
 }
+
+func GetFloatQueryStringParameter(r *http.Request, parameterName string) float64 {
+	parameterValue, err := strconv.ParseFloat(r.PostForm.Get(parameterName), 64)
+	if err != nil {
+		return 0
+	} else {
+		return parameterValue
+	}
+}
