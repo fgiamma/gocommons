@@ -1245,3 +1245,12 @@ func DeleteFromS3(s3data S3Data, objectName string) error {
 
 	return nil
 }
+
+func GetIntQueryStringParameter(r *http.Request, parameterName string) int {
+	parameterValue, err := strconv.Atoi(r.PostForm.Get(parameterName))
+	if err != nil {
+		return 0
+	} else {
+		return parameterValue
+	}
+}
