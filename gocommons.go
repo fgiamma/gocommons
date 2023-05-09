@@ -1263,3 +1263,13 @@ func GetFloatQueryStringParameter(r *http.Request, parameterName string) float64
 		return parameterValue
 	}
 }
+
+func GetBoolQueryStringParameter(r *http.Request, parameterName string) bool {
+	parameterValue, err := strconv.ParseBool(r.PostForm.Get(parameterName))
+
+	if err != nil {
+		return false
+	} else {
+		return parameterValue
+	}
+}
