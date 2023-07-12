@@ -165,6 +165,19 @@ type Translation struct {
 type LogWriter struct {
 }
 
+type CustomError struct {
+	StatusCode int
+	Err        string
+}
+
+func (qe *CustomError) Error() string {
+	return qe.Err
+}
+
+func (qe *CustomError) GetCode() int {
+	return qe.StatusCode
+}
+
 var DateLayout string = "2006-01-02 15:04:05"
 var CompactDateLayout string = "20060102150405"
 
@@ -1271,5 +1284,12 @@ func GetBoolQueryStringParameter(r *http.Request, parameterName string) bool {
 		return false
 	} else {
 		return parameterValue
+	}
+}
+
+func GetCustomError(message string, code int) error {
+	return &CustomError{
+		StatusCode: 503,
+		Err:        "unavailable",
 	}
 }
