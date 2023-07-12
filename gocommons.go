@@ -1289,7 +1289,15 @@ func GetBoolQueryStringParameter(r *http.Request, parameterName string) bool {
 
 func GetCustomError(message string, code int) error {
 	return &CustomError{
-		StatusCode: 503,
-		Err:        "unavailable",
+		StatusCode: code,
+		Err:        message,
+	}
+}
+
+func GetCustomErrorFromAnotherError(err error, message string, code int) error {
+	completeMessage := fmt.Sprintf("%s -> %s", message, err)
+	return &CustomError{
+		StatusCode: code,
+		Err:        completeMessage,
 	}
 }
