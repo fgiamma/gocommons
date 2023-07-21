@@ -215,6 +215,20 @@ func GetUidList(numberOfElements int) []string {
 	return uids
 }
 
+func GetDoubleUidNoTime() string {
+	// Create new uniqueid
+	uuidString1 := uuid.NewString()
+	uuidString2 := uuid.NewString()
+
+	uuidString1 = strings.ToUpper(uuidString1)
+	uuidString1 = strings.Replace(uuidString1, "-", "", -1)
+
+	uuidString2 = strings.ToUpper(uuidString2)
+	uuidString2 = strings.Replace(uuidString2, "-", "", -1)
+
+	return fmt.Sprintf("%s%s", uuidString1, uuidString2)
+}
+
 func GetMD5Hash(text string) string {
 	hash := md5.Sum([]byte(text))
 	return hex.EncodeToString(hash[:])
