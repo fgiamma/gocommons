@@ -8,7 +8,9 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
+	"flag"
 	"io"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -1314,4 +1316,47 @@ func GetCustomErrorFromAnotherError(err error, message string, code int) error {
 		StatusCode: code,
 		Err:        completeMessage,
 	}
+}
+
+func ConfigApp(mode int) (*gorm.DB, *sql.DB, error) {
+	log.SetFlags(log.Lshortfile)
+	log.SetOutput(new(LogWriter))
+
+	// Path of executable, first attempt
+	ex, err := os.Executable()
+	if err != nil {
+		panic(err)
+	}
+	exPath := filepath.Dir(ex)
+	exPath = fmt.Sprintf("%s/", exPath)
+
+	_, err = os.Stat(exPath + "/config.toml")
+
+	var configFolder *string
+	// No path has been found, select default
+	if err != nil {
+		configFolder = flag.String("configfolder", "./", "Configuration folder TOML file")
+		flag.Parse()
+	} else {
+		configFolder = &exPath
+	}
+
+	var db *gorm.DB
+	var sqlDB *sql.DB
+
+	if mode == 0 {
+		_, db, sqlDB, err = InitData(*configFolder)
+
+	} else {
+		_, db, sqlDB, err = InitPostgresData(*configFolder)
+	}
+
+	if err != nil {
+		log.Println(err)
+		return nil, nil, err
+	}
+
+	// defer sqlDB.Close()
+
+	return db, sqlDB, nil
 }
