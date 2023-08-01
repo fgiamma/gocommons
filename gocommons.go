@@ -1360,3 +1360,82 @@ func ConfigApp(mode int) (*gorm.DB, *sql.DB, error) {
 
 	return db, sqlDB, nil
 }
+
+func AesGetIv(key []byte) ([]byte, error) {
+	c, err := aes.NewCipher(key)
+	// if there are any errors, handle them
+	if err != nil {
+		return nil, err
+	}
+
+	// gcm or Galois/Counter Mode, is a mode of operation
+	// for symmetric key cryptographic block ciphers
+	// - https://en.wikipedia.org/wiki/Galois/Counter_Mode
+	gcm, err := cipher.NewGCM(c)
+	// if any error generating new GCM
+	// handle them
+	if err != nil {
+		return nil, err
+	}
+
+	nonce := make([]byte, gcm.NonceSize())
+	// populates our nonce with a cryptographically secure
+	// random sequence
+	if _, err = io.ReadFull(cryptorand.Reader, nonce); err != nil {
+		return nil, err
+	}
+
+	return nonce, nil
+}
+
+func AesEncryptFixedIv(textString string, key []byte, nonce []byte) (string, error) {
+	text := []byte(textString)
+
+	// generate a new aes cipher using our 32 byte long key
+	c, err := aes.NewCipher(key)
+	// if there are any errors, handle them
+	if err != nil {
+		return "", err
+	}
+
+	// gcm or Galois/Counter Mode, is a mode of operation
+	// for symmetric key cryptographic block ciphers
+	// - https://en.wikipedia.org/wiki/Galois/Counter_Mode
+	gcm, err := cipher.NewGCM(c)
+	// if any error generating new GCM
+	// handle them
+	if err != nil {
+		return "", err
+	}
+
+	encryptedBytes := gcm.Seal(nil, nonce, text, nil)
+	encryptedString := hex.EncodeToString(encryptedBytes)
+
+	return encryptedString, nil
+
+}
+
+func AesDecryptFixedIv(encryptedString string, key []byte, nonce []byte) (string, error) {
+	ciphertext, err := hex.DecodeString(encryptedString)
+	if err != nil {
+		return "", err
+	}
+	// key := []byte(keyString)
+
+	c, err := aes.NewCipher(key)
+	if err != nil {
+		return "", err
+	}
+
+	gcm, err := cipher.NewGCM(c)
+	if err != nil {
+		return "", err
+	}
+
+	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return string(plaintext), nil
+}
