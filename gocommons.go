@@ -1439,3 +1439,19 @@ func AesDecryptFixedIv(encryptedString string, key []byte, nonce []byte) (string
 
 	return string(plaintext), nil
 }
+
+func GetCryptoStuff(cryptoItem string) (string, []byte, error) {
+	if cryptoItem == "" {
+		return "", nil, errors.New("invalid string")
+	}
+
+	nonceString := cryptoItem[:24]
+	cryptoKey := cryptoItem[24:]
+
+	nonce, err := hex.DecodeString(nonceString)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return cryptoKey, nonce, nil
+}
