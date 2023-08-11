@@ -185,6 +185,9 @@ var CompactDateLayout string = "20060102150405"
 
 var Dsn string
 
+const MYSQLAPP = 0
+const POSTGRESQLAPP = 1
+
 func TimeIn(name string, utcTime time.Time) (time.Time, error) {
 	loc, err := time.LoadLocation(countryTz[name])
 	if err != nil {
