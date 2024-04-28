@@ -187,15 +187,22 @@ type TelegramMessage struct {
 }
 
 type Telegram struct {
-	Url string `json:"url"`
+	Url    string `json:"url"`
+	ChatId int64  `json:"chat_id"`
 }
 
-func (t *Telegram) SetUrl(token string) {
+func (t *Telegram) SetUrl(token string, chatId int64) {
 	t.Url = fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", token)
+	t.ChatId = chatId
 }
 
 // SendMessage sends a message to given URL.
-func (t *Telegram) SendMessage(message *TelegramMessage) error {
+func (t *Telegram) SendMessage(messageString string) error {
+	message := TelegramMessage{
+		ChatID: t.ChatId,
+		Text:   messageString,
+	}
+
 	payload, err := json.Marshal(message)
 	if err != nil {
 		return err
