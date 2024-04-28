@@ -1501,8 +1501,8 @@ func GetCryptoStuff(cryptoItem string) (string, []byte, error) {
 	return cryptoKey, nonce, nil
 }
 
-func NewTelegram(token string) Telegram {
+func NewTelegram(token string, chatId int64) Telegram {
 	t := Telegram{}
-	t.SetUrl(token)
+	t.SetUrl(token, chatId)
 	return t
 }
