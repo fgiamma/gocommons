@@ -191,9 +191,16 @@ type Telegram struct {
 	ChatId int64  `json:"chat_id"`
 }
 
-func (t *Telegram) SetUrl(token string, chatId int64) {
+func (t *Telegram) SetUrl(token string, chatId string) error {
 	t.Url = fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", token)
-	t.ChatId = chatId
+
+	chatIdNumber, err := strconv.ParseInt(chatId, 10, 64)
+	if err != nil {
+		return err
+	}
+
+	t.ChatId = chatIdNumber
+	return nil
 }
 
 // SendMessage sends a message to given URL.
@@ -1501,7 +1508,7 @@ func GetCryptoStuff(cryptoItem string) (string, []byte, error) {
 	return cryptoKey, nonce, nil
 }
 
-func NewTelegram(token string, chatId int64) Telegram {
+func NewTelegram(token string, chatId string) Telegram {
 	t := Telegram{}
 	t.SetUrl(token, chatId)
 	return t
