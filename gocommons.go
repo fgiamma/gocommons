@@ -1514,27 +1514,35 @@ func NewTelegram(token string, chatId string) Telegram {
 	return t
 }
 
-/* Get int or flat32 value from a string array */
-func GetNumberColValue[T float32 | int](row []string, position int, mode int) T {
+/* Get int, float32, float64 value from a string array */
+func GetNumberColValue[T float64 | float32 | int](row []string, position int, mode T) T {
 	if len(row) < (position + 1) {
 		return 0
 	}
 
-	if mode == 1 {
+	switch any(mode).(type) {
+	case int:
 		number, err := strconv.Atoi(row[position])
 		if err != nil {
 			return 0
 		}
 
 		return T(number)
-	} else if mode == 2 {
+	case float32:
 		number, err := strconv.ParseFloat(row[position], 32)
 		if err != nil {
 			return 0
 		}
 
 		return T(number)
-	} else {
+	case float64:
+		number, err := strconv.ParseFloat(row[position], 64)
+		if err != nil {
+			return 0
+		}
+
+		return T(number)
+	default:
 		return 0
 	}
 }
