@@ -1513,3 +1513,28 @@ func NewTelegram(token string, chatId string) Telegram {
 	t.SetUrl(token, chatId)
 	return t
 }
+
+/* Get int or flat32 value from a string array */
+func GetNumberColValue[T float32 | int](row []string, position int, mode int) (T, error) {
+	if len(row) < (position + 1) {
+		return 0, errors.New("invalid position")
+	}
+
+	if mode == 1 {
+		number, err := strconv.Atoi(row[position])
+		if err != nil {
+			return 0, err
+		}
+
+		return T(number), nil
+	} else if mode == 2 {
+		number, err := strconv.ParseFloat(row[position], 32)
+		if err != nil {
+			return 0, err
+		}
+
+		return T(number), nil
+	} else {
+		return 0, errors.New("invalid mode")
+	}
+}
