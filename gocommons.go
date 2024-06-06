@@ -1514,7 +1514,7 @@ func NewTelegram(token string, chatId string) Telegram {
 	return t
 }
 
-/* Get int, float32, float64 value from a string array */
+/* Get float32, float64, int value from a string array */
 func GetNumberColValue[T float64 | float32 | int](row []string, position int, mode T) T {
 	if len(row) < (position + 1) {
 		return 0
