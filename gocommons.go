@@ -36,6 +36,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/alexedwards/scs/v2"
 	"github.com/google/uuid"
+	"github.com/oklog/ulid"
 	"golang.org/x/crypto/scrypt"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -267,6 +268,20 @@ func GetUidList(numberOfElements int) []string {
 	}
 
 	return uids
+}
+
+func GetUlid() string {
+	ulid := ulid.MustNew(ulid.Now(), cryptorand.Reader)
+	return ulid.String()
+}
+
+func GetUlidList(numberOfElements int) []string {
+	ulids := make([]string, numberOfElements)
+	for i := 0; i < numberOfElements; i++ {
+		ulids[i] = GetUlid()
+	}
+
+	return ulids
 }
 
 func GetDoubleUidNoTime() string {
