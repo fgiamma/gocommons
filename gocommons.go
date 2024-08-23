@@ -124,14 +124,11 @@ type S3Data struct {
 }
 
 type DoS3Data struct {
-	AccessKey   string `json:"access_key"`
-	Secret      string `json:"secret"`
-	Region      string `json:"region"`
-	SpacesUrl   string `json:"spaces_url"`
-	BucketName  string `json:"bucket_name"`
-	Region2     string `json:"region2"`
-	SpacesUrl2  string `json:"spaces_url2"`
-	BucketName2 string `json:"bucket_name2"`
+	AccessKey  string `json:"access_key"`
+	Secret     string `json:"secret"`
+	Region     string `json:"region"`
+	SpacesUrl  string `json:"spaces_url"`
+	BucketName string `json:"bucket_name"`
 }
 
 type DatabaseData struct {
