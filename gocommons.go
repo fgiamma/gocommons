@@ -123,6 +123,14 @@ type S3Data struct {
 	AwsBucketName      string `json:"aws_bucket_name"`
 }
 
+type DoS3Data struct {
+	AccessKey  string `json:"access_key"`
+	Secret     string `json:"secret"`
+	Region     string `json:"region"`
+	SpacesUrl  string `json:"spaces_url"`
+	BucketName string `json:"bucket_name"`
+}
+
 type DatabaseData struct {
 	Username string
 	Password string
