@@ -1569,3 +1569,39 @@ func GetNumberColValue[T float64 | float32 | int](row []string, position int, mo
 		return 0
 	}
 }
+
+func DeleteFromDoS3(s3data DoS3Data, objectName string) error {
+	// Create a custom resolver for DigitalOcean Spaces
+	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+		return aws.Endpoint{
+			URL: s3data.SpacesUrl,
+		}, nil
+	})
+
+	// Configure the AWS SDK
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion(s3data.Region),
+		config.WithEndpointResolverWithOptions(customResolver),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(s3data.AccessKey, s3data.Secret, "")),
+	)
+	if err != nil {
+		return err
+	}
+
+	// Create an Amazon S3 service client
+	client := s3.NewFromConfig(cfg)
+
+	// client.DeleteObject()
+
+	input := &s3.DeleteObjectInput{
+		Bucket: &s3data.BucketName,
+		Key:    &objectName,
+	}
+
+	_, err = DeleteS3Item(context.TODO(), client, input)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
