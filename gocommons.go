@@ -1605,3 +1605,56 @@ func DeleteFromDoS3(s3data DoS3Data, objectName string) error {
 
 	return nil
 }
+
+func DownloadFromDoS3(s3data DoS3Data, objectName string) (string, error) {
+	// Create a custom resolver for DigitalOcean Spaces
+	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+		return aws.Endpoint{
+			URL: s3data.SpacesUrl,
+		}, nil
+	})
+
+	// Configure the AWS SDK
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion(s3data.Region),
+		config.WithEndpointResolverWithOptions(customResolver),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(s3data.AccessKey, s3data.Secret, "")),
+	)
+	if err != nil {
+		return "", err
+	}
+	// Create an Amazon S3 service client
+	client := s3.NewFromConfig(cfg)
+
+	result, err := client.GetObject(context.TODO(), &s3.GetObjectInput{
+		Bucket: aws.String(s3data.BucketName),
+		Key:    aws.String(objectName),
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	pointPosition := strings.LastIndex(objectName, ".")
+	extension := objectName[pointPosition:]
+
+	fileName := fmt.Sprintf("/tmp/%s%s", GetUid(), extension)
+
+	defer result.Body.Close()
+	file, err := os.Create(fileName)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+	body, err := io.ReadAll(result.Body)
+	if err != nil {
+		return "", err
+	}
+	_, err = file.Write(body)
+
+	if err != nil {
+		return "", err
+	}
+
+	return fileName, nil
+}
