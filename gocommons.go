@@ -32,6 +32,7 @@ import (
 	"time"
 
 	"database/sql"
+	"database/sql/driver"
 
 	"github.com/BurntSushi/toml"
 	"github.com/alexedwards/scs/v2"
@@ -236,6 +237,22 @@ func (t *Telegram) SendMessage(messageString string) error {
 		return fmt.Errorf("failed to send successful request. Status was %q", response.Status)
 	}
 	return nil
+}
+
+type JSONB map[string]interface{}
+
+// Value Marshal
+func (jsonField JSONB) Value() (driver.Value, error) {
+	return json.Marshal(jsonField)
+}
+
+// Scan Unmarshal
+func (jsonField *JSONB) Scan(value interface{}) error {
+	data, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+	return json.Unmarshal(data, &jsonField)
 }
 
 var DateLayout string = "2006-01-02 15:04:05"
