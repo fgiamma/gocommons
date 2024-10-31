@@ -1675,3 +1675,15 @@ func DownloadFromDoS3(s3data DoS3Data, objectName string) (string, error) {
 
 	return fileName, nil
 }
+
+func StructToMap(input interface{}) (map[string]interface{}, error) {
+	output := make(map[string]interface{})
+	v := reflect.ValueOf(input)
+
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Type().Field(i)
+		output[field.Name] = v.Field(i).Interface()
+	}
+
+	return output, nil
+}
