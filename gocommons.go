@@ -141,8 +141,9 @@ type DatabaseData struct {
 }
 
 type HttpData struct {
-	Port int
-	Ssl  int `toml:"ssl"`
+	Port  int `toml:"port"`
+	Port2 int `toml:"port2"`
+	Ssl   int `toml:"ssl"`
 }
 
 type FoldersData struct {
