@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -68,47 +67,47 @@ func ReadConfig[T any](fileName string, conf T) (T, error) {
 	return conf, nil
 }
 
-func InitData(configFolder string) (ConfigData, *gorm.DB, *sql.DB, error) {
-	var conf ConfigData
-	conf, err := ReadConfig(configFolder+"config.toml", conf)
+// func InitData(configFolder string) (ConfigData, *gorm.DB, *sql.DB, error) {
+// 	var conf ConfigData
+// 	conf, err := ReadConfig(configFolder+"config.toml", conf)
 
-	if err != nil {
-		return ConfigData{}, nil, nil, err
-	}
+// 	if err != nil {
+// 		return ConfigData{}, nil, nil, err
+// 	}
 
-	// Create database pool
-	dbPort := strconv.Itoa(conf.Database.Port)
-	dsn := conf.Database.Username + ":" + conf.Database.Password + "@tcp(" + conf.Database.Server + ":" + dbPort + ")/" + conf.Database.Dbname + "?charset=utf8mb4&parseTime=True&loc=Local"
+// 	// Create database pool
+// 	dbPort := strconv.Itoa(conf.Database.Port)
+// 	dsn := conf.Database.Username + ":" + conf.Database.Password + "@tcp(" + conf.Database.Server + ":" + dbPort + ")/" + conf.Database.Dbname + "?charset=utf8mb4&parseTime=True&loc=Local"
 
-	newLogger := logger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-		logger.Config{
-			SlowThreshold:             time.Second,  // Slow SQL threshold
-			LogLevel:                  logger.Error, // Log level
-			IgnoreRecordNotFoundError: true,         // Ignore ErrRecordNotFound error for logger
-			Colorful:                  false,        // Disable color
-		},
-	)
+// 	newLogger := logger.New(
+// 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+// 		logger.Config{
+// 			SlowThreshold:             time.Second,  // Slow SQL threshold
+// 			LogLevel:                  logger.Error, // Log level
+// 			IgnoreRecordNotFoundError: true,         // Ignore ErrRecordNotFound error for logger
+// 			Colorful:                  false,        // Disable color
+// 		},
+// 	)
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: newLogger,
-	})
+// 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+// 		Logger: newLogger,
+// 	})
 
-	if err != nil {
-		return ConfigData{}, nil, nil, err
-	}
+// 	if err != nil {
+// 		return ConfigData{}, nil, nil, err
+// 	}
 
-	sqlDB, err := db.DB()
-	if err != nil {
-		return ConfigData{}, nil, nil, err
-	}
+// 	sqlDB, err := db.DB()
+// 	if err != nil {
+// 		return ConfigData{}, nil, nil, err
+// 	}
 
-	if err = sqlDB.Ping(); err != nil {
-		return ConfigData{}, nil, nil, err
-	}
+// 	if err = sqlDB.Ping(); err != nil {
+// 		return ConfigData{}, nil, nil, err
+// 	}
 
-	return conf, db, sqlDB, nil
-}
+// 	return conf, db, sqlDB, nil
+// }
 
 func InitPostgresData(configFolder string) (ConfigData, *gorm.DB, *sql.DB, error) {
 	var conf ConfigData
@@ -178,12 +177,12 @@ func ConfigApp(mode int) (*gorm.DB, *sql.DB, error) {
 	var db *gorm.DB
 	var sqlDB *sql.DB
 
-	if mode == 0 {
-		_, db, sqlDB, err = InitData(*configFolder)
-
-	} else {
+	if mode == 1 {
 		_, db, sqlDB, err = InitPostgresData(*configFolder)
 	}
+	// } else {
+	// 	_, db, sqlDB, err = InitPostgresData(*configFolder)
+	// }
 
 	if err != nil {
 		log.Println(err)
