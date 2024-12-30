@@ -20,6 +20,12 @@ type Telegram struct {
 	ChatId int64  `json:"chat_id"`
 }
 
+func NewTelegram(token string, chatId string) Telegram {
+	t := Telegram{}
+	t.SetUrl(token, chatId)
+	return t
+}
+
 func (t *Telegram) SetUrl(token string, chatId string) error {
 	t.Url = fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", token)
 
