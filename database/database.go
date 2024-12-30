@@ -194,3 +194,24 @@ func ConfigApp(mode int) (*gorm.DB, *sql.DB, error) {
 
 	return db, sqlDB, nil
 }
+
+func GetDbParameter(db *gorm.DB, parameterName string) string {
+	var parameterValue string
+	sql := "SELECT parameter_value FROM parameters WHERE parameter_name=?;"
+	db.Raw(sql, parameterName).Scan(&parameterValue)
+
+	return parameterValue
+}
+
+func GetIntDbParameter(db *gorm.DB, parameterName string) int {
+	var parameterValueString sql.NullString
+	sql := `SELECT parameter_value FROM parameters WHERE parameter_name=?;`
+	db.Raw(sql, parameterName).Scan(&parameterValueString)
+
+	parameterValue, err := strconv.Atoi(parameterValueString.String)
+	if err != nil {
+		return 0
+	}
+
+	return parameterValue
+}
