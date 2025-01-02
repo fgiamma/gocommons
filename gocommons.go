@@ -6,9 +6,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"errors"
-	"flag"
 	"io"
-	"path/filepath"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -28,21 +26,14 @@ import (
 	"strings"
 	"time"
 
-	"database/sql"
 	"database/sql/driver"
 
-	"github.com/BurntSushi/toml"
 	"github.com/alexedwards/scs/v2"
 	"github.com/google/uuid"
 	"github.com/oklog/ulid"
 	"golang.org/x/crypto/scrypt"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
-	"gorm.io/datatypes"
-	"gorm.io/driver/mysql"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 	// mysqlxx "github.com/go-sql-driver/mysql"
 )
 
@@ -56,15 +47,15 @@ type ListResponseObject struct {
 	CurrentPage interface{} `json:"currentPage"`
 }
 
-type Check struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-}
+// type Check struct {
+// 	Key   string `json:"key"`
+// 	Value string `json:"value"`
+// }
 
-type CheckArray struct {
-	Checks []Check `json:"checks"`
-	Uid    string  `json:"uid"`
-}
+// type CheckArray struct {
+// 	Checks []Check `json:"checks"`
+// 	Uid    string  `json:"uid"`
+// }
 
 type CheckResult struct {
 	Key         string `json:"key"`
@@ -75,22 +66,22 @@ type ItemToBeDeleted struct {
 	Uniqueid string `json:"uniqueid"`
 }
 
-type Database struct {
-	Host           string `json:"host"`
-	Port           string `json:"port"`
-	Username       string `json:"username"`
-	Password       string `json:"password"`
-	DatabaseName   string `json:"dbname"`
-	Ssl            bool   `json:"ssl"`
-	SslCertificate string `json:"ssl_certificate"`
-}
+// type Database struct {
+// 	Host           string `json:"host"`
+// 	Port           string `json:"port"`
+// 	Username       string `json:"username"`
+// 	Password       string `json:"password"`
+// 	DatabaseName   string `json:"dbname"`
+// 	Ssl            bool   `json:"ssl"`
+// 	SslCertificate string `json:"ssl_certificate"`
+// }
 
-type Config struct {
-	Logfile     string   `json:"logfile"`
-	Database    Database `json:"database"`
-	BaseDataUrl string   `json:"base_data_url"`
-	ServerPort  int      `json:"server_port"`
-}
+// type Config struct {
+// 	Logfile     string   `json:"logfile"`
+// 	Database    Database `json:"database"`
+// 	BaseDataUrl string   `json:"base_data_url"`
+// 	ServerPort  int      `json:"server_port"`
+// }
 
 type SessionListParameters struct {
 	SortColumn string
@@ -108,52 +99,53 @@ var countryTz = map[string]string{
 	"Rome": "Europe/Rome",
 }
 
-type DatabaseData struct {
-	Username string
-	Password string
-	Server   string
-	Port     int
-	Dbname   string
-}
+// type DatabaseData struct {
+// 	Username string
+// 	Password string
+// 	Server   string
+// 	Port     int
+// 	Dbname   string
+// }
 
-type HttpData struct {
-	Port  int `toml:"port"`
-	Port2 int `toml:"port2"`
-	Ssl   int `toml:"ssl"`
-}
+// type HttpData struct {
+// 	Port  int `toml:"port"`
+// 	Port2 int `toml:"port2"`
+// 	Ssl   int `toml:"ssl"`
+// }
 
-type FoldersData struct {
-	RootFolder   string `rootfolder:"http"`
-	SharedFolder string `toml:"sharedfolder"`
-}
-type ConfigData struct {
-	Title    string
-	Http     HttpData     `toml:"http"`
-	Database DatabaseData `toml:"database"`
-	Folders  FoldersData  `toml:"folders"`
-}
+// type FoldersData struct {
+// 	RootFolder   string `rootfolder:"http"`
+// 	SharedFolder string `toml:"sharedfolder"`
+// }
 
-type Locale struct {
-	Id       int    `json:"id"`
-	Lang     string `json:"lang"`
-	Uniqueid string `json:"uniqueid"`
-}
+// type ConfigData struct {
+// 	Title    string
+// 	Http     HttpData     `toml:"http"`
+// 	Database DatabaseData `toml:"database"`
+// 	Folders  FoldersData  `toml:"folders"`
+// }
 
-type LocaleString struct {
-	Id              int            `json:"id"`
-	ElementKey      string         `json:"element_key"`
-	Annotations     string         `json:"annotations"`
-	SystemGenerated bool           `json:"system_generated"`
-	JsonData        datatypes.JSON `json:"json_data"`
-	Uniqueid        string         `json:"uniqueid"`
-}
-type Translation struct {
-	LangCode  string `json:"lang_code"`
-	LangValue string `json:"lang_value"`
-}
+// type Locale struct {
+// 	Id       int    `json:"id"`
+// 	Lang     string `json:"lang"`
+// 	Uniqueid string `json:"uniqueid"`
+// }
 
-type LogWriter struct {
-}
+//	type LocaleString struct {
+//		Id              int            `json:"id"`
+//		ElementKey      string         `json:"element_key"`
+//		Annotations     string         `json:"annotations"`
+//		SystemGenerated bool           `json:"system_generated"`
+//		JsonData        datatypes.JSON `json:"json_data"`
+//		Uniqueid        string         `json:"uniqueid"`
+//	}
+// type Translation struct {
+// 	LangCode  string `json:"lang_code"`
+// 	LangValue string `json:"lang_value"`
+// }
+
+// type LogWriter struct {
+// }
 
 type CustomError struct {
 	StatusCode int
@@ -384,157 +376,157 @@ func WriteValidResponse(w http.ResponseWriter, code string, message any) {
 	WriteResponse(w, *ro, http.StatusOK)
 }
 
-func GetDbParameter(db *gorm.DB, parameterName string) string {
-	var parameterValue string
-	sql := "SELECT parameter_value FROM parameters WHERE parameter_name=?;"
-	db.Raw(sql, parameterName).Scan(&parameterValue)
+// func GetDbParameter(db *gorm.DB, parameterName string) string {
+// 	var parameterValue string
+// 	sql := "SELECT parameter_value FROM parameters WHERE parameter_name=?;"
+// 	db.Raw(sql, parameterName).Scan(&parameterValue)
 
-	return parameterValue
-}
+// 	return parameterValue
+// }
 
-func GetIntDbParameter(db *gorm.DB, parameterName string) int {
-	var parameterValueString sql.NullString
-	sql := `SELECT parameter_value FROM parameters WHERE parameter_name=?;`
-	db.Raw(sql, parameterName).Scan(&parameterValueString)
+// func GetIntDbParameter(db *gorm.DB, parameterName string) int {
+// 	var parameterValueString sql.NullString
+// 	sql := `SELECT parameter_value FROM parameters WHERE parameter_name=?;`
+// 	db.Raw(sql, parameterName).Scan(&parameterValueString)
 
-	parameterValue, err := strconv.Atoi(parameterValueString.String)
-	if err != nil {
-		return 0
-	}
+// 	parameterValue, err := strconv.Atoi(parameterValueString.String)
+// 	if err != nil {
+// 		return 0
+// 	}
 
-	return parameterValue
-}
+// 	return parameterValue
+// }
 
-func ValidateToken(db *gorm.DB, token string) bool {
-	var tokenId int
-	sql := "SELECT id FROM tokens WHERE uniqueid=? AND expiration_date > NOW();"
-	db.Raw(sql, token).Scan(&tokenId)
+// func ValidateToken(db *gorm.DB, token string) bool {
+// 	var tokenId int
+// 	sql := "SELECT id FROM tokens WHERE uniqueid=? AND expiration_date > NOW();"
+// 	db.Raw(sql, token).Scan(&tokenId)
 
-	if tokenId == 0 {
-		return false
-	} else {
-		return true
-	}
-}
+// 	if tokenId == 0 {
+// 		return false
+// 	} else {
+// 		return true
+// 	}
+// }
 
-func CheckMultipleValues(db *gorm.DB, tableName string, w http.ResponseWriter, r *http.Request) {
-	var checks CheckArray
-	err := json.NewDecoder(r.Body).Decode(&checks)
-	if err != nil {
-		WriteInvalidResponse(w, "ko", "Error decoding params")
-		return
-	}
+// func CheckMultipleValues(db *gorm.DB, tableName string, w http.ResponseWriter, r *http.Request) {
+// 	var checks CheckArray
+// 	err := json.NewDecoder(r.Body).Decode(&checks)
+// 	if err != nil {
+// 		WriteInvalidResponse(w, "ko", "Error decoding params")
+// 		return
+// 	}
 
-	var extraSql string = ""
-	if checks.Uid != "" {
-		extraSql = " AND uniqueid <> '" + checks.Uid + "'"
-	}
+// 	var extraSql string = ""
+// 	if checks.Uid != "" {
+// 		extraSql = " AND uniqueid <> '" + checks.Uid + "'"
+// 	}
 
-	checkResults := make([]CheckResult, 0)
+// 	checkResults := make([]CheckResult, 0)
 
-	for i := 0; i < len(checks.Checks); i++ {
-		item := checks.Checks[i]
-		if item.Key == "" || item.Value == "" {
-			WriteInvalidResponse(w, "ko", "Error evaluating items")
-			return
-		}
+// 	for i := 0; i < len(checks.Checks); i++ {
+// 		item := checks.Checks[i]
+// 		if item.Key == "" || item.Value == "" {
+// 			WriteInvalidResponse(w, "ko", "Error evaluating items")
+// 			return
+// 		}
 
-		sql := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE %s=?%s;", tableName, item.Key, extraSql)
+// 		sql := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE %s=?%s;", tableName, item.Key, extraSql)
 
-		// sql := "SELECT COUNT(*) FROM " + tableName + " WHERE " + item.Key + "='" + item.Value + "'" + extraSql + ";"
-		var counter int
-		db.Raw(sql, item.Value).Scan(&counter)
+// 		// sql := "SELECT COUNT(*) FROM " + tableName + " WHERE " + item.Key + "='" + item.Value + "'" + extraSql + ";"
+// 		var counter int
+// 		db.Raw(sql, item.Value).Scan(&counter)
 
-		var returnValue bool = true
-		if counter > 0 {
-			returnValue = false
-		}
+// 		var returnValue bool = true
+// 		if counter > 0 {
+// 			returnValue = false
+// 		}
 
-		var checkResult *CheckResult = new(CheckResult)
-		checkResult.Key = item.Key
-		checkResult.ReturnValue = returnValue
+// 		var checkResult *CheckResult = new(CheckResult)
+// 		checkResult.Key = item.Key
+// 		checkResult.ReturnValue = returnValue
 
-		checkResults = append(checkResults, *checkResult)
-	}
+// 		checkResults = append(checkResults, *checkResult)
+// 	}
 
-	returnObject := make(map[string]interface{})
-	returnObject["element"] = checkResults
+// 	returnObject := make(map[string]interface{})
+// 	returnObject["element"] = checkResults
 
-	WriteValidResponse(w, "ok", returnObject)
-}
+// 	WriteValidResponse(w, "ok", returnObject)
+// }
 
-func DeleteItem(tableName string, w http.ResponseWriter, r *http.Request) {
-	AllowCors(&w)
+// func DeleteItem(tableName string, w http.ResponseWriter, r *http.Request) {
+// 	AllowCors(&w)
 
-	if (*r).Method == "OPTIONS" {
-		return
-	}
+// 	if (*r).Method == "OPTIONS" {
+// 		return
+// 	}
 
-	// Check method type
-	if r.Method != "POST" {
-		WriteInvalidResponse(w, "ko", "Invalid data")
-		return
-	}
+// 	// Check method type
+// 	if r.Method != "POST" {
+// 		WriteInvalidResponse(w, "ko", "Invalid data")
+// 		return
+// 	}
 
-	newLogger := logger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-		logger.Config{
-			SlowThreshold:             time.Second,  // Slow SQL threshold
-			LogLevel:                  logger.Error, // Log level
-			IgnoreRecordNotFoundError: true,         // Ignore ErrRecordNotFound error for logger
-			Colorful:                  false,        // Disable color
-		},
-	)
+// 	newLogger := logger.New(
+// 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+// 		logger.Config{
+// 			SlowThreshold:             time.Second,  // Slow SQL threshold
+// 			LogLevel:                  logger.Error, // Log level
+// 			IgnoreRecordNotFoundError: true,         // Ignore ErrRecordNotFound error for logger
+// 			Colorful:                  false,        // Disable color
+// 		},
+// 	)
 
-	db, err := gorm.Open(mysql.Open(Dsn), &gorm.Config{
-		Logger: newLogger,
-	})
+// 	db, err := gorm.Open(mysql.Open(Dsn), &gorm.Config{
+// 		Logger: newLogger,
+// 	})
 
-	if err != nil {
-		WriteInvalidResponse(w, "ko", "Error opening the database")
-		return
-	}
+// 	if err != nil {
+// 		WriteInvalidResponse(w, "ko", "Error opening the database")
+// 		return
+// 	}
 
-	sqlDB, err := db.DB()
-	if err != nil {
-		log.Println("Error requesting late db close")
-	}
-	defer sqlDB.Close()
+// 	sqlDB, err := db.DB()
+// 	if err != nil {
+// 		log.Println("Error requesting late db close")
+// 	}
+// 	defer sqlDB.Close()
 
-	// Check and validate token
-	token := r.Header.Get("token")
-	if token == "" || !ValidateToken(db, token) {
-		WriteInvalidResponse(w, "ko-999", "Invalid token")
-		return
-	}
+// 	// Check and validate token
+// 	token := r.Header.Get("token")
+// 	if token == "" || !ValidateToken(db, token) {
+// 		WriteInvalidResponse(w, "ko-999", "Invalid token")
+// 		return
+// 	}
 
-	// Read request body
-	var itemToBeDeleted ItemToBeDeleted
-	reqBody, _ := io.ReadAll(r.Body)
-	json.Unmarshal(reqBody, &itemToBeDeleted)
+// 	// Read request body
+// 	var itemToBeDeleted ItemToBeDeleted
+// 	reqBody, _ := io.ReadAll(r.Body)
+// 	json.Unmarshal(reqBody, &itemToBeDeleted)
 
-	if itemToBeDeleted.Uniqueid == "" {
-		WriteInvalidResponse(w, "ko", "Invalid data")
-		return
-	}
+// 	if itemToBeDeleted.Uniqueid == "" {
+// 		WriteInvalidResponse(w, "ko", "Invalid data")
+// 		return
+// 	}
 
-	var counter int
-	sql := "SELECT COUNT(*) FROM " + tableName + " WHERE uniqueid=?;"
-	db.Raw(sql, itemToBeDeleted.Uniqueid).Scan(&counter)
+// 	var counter int
+// 	sql := "SELECT COUNT(*) FROM " + tableName + " WHERE uniqueid=?;"
+// 	db.Raw(sql, itemToBeDeleted.Uniqueid).Scan(&counter)
 
-	if counter == 0 {
-		WriteInvalidResponse(w, "ko", "Invalid parameter uid")
-		return
-	}
+// 	if counter == 0 {
+// 		WriteInvalidResponse(w, "ko", "Invalid parameter uid")
+// 		return
+// 	}
 
-	sql = "DELETE FROM " + tableName + " WHERE uniqueid='" + itemToBeDeleted.Uniqueid + "';"
-	db.Exec(sql)
+// 	sql = "DELETE FROM " + tableName + " WHERE uniqueid='" + itemToBeDeleted.Uniqueid + "';"
+// 	db.Exec(sql)
 
-	var ro *ResponseObject = new(ResponseObject)
-	ro.Code = "ok"
-	ro.Data = "Operation completed"
-	WriteResponse(w, *ro, http.StatusOK)
-}
+// 	var ro *ResponseObject = new(ResponseObject)
+// 	ro.Code = "ok"
+// 	ro.Data = "Operation completed"
+// 	WriteResponse(w, *ro, http.StatusOK)
+// }
 
 func stringWithCharset(length int, charset string) string {
 	var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -559,20 +551,20 @@ func GetRandomLowercaseString(length int) string {
 	return newString
 }
 
-func LoadConfiguration(file string) Config {
-	var config Config
-	configFile, err := os.Open(file)
+// func LoadConfiguration(file string) Config {
+// 	var config Config
+// 	configFile, err := os.Open(file)
 
-	if err != nil {
-		fmt.Println(err.Error())
-	}
+// 	if err != nil {
+// 		fmt.Println(err.Error())
+// 	}
 
-	defer configFile.Close()
+// 	defer configFile.Close()
 
-	jsonParser := json.NewDecoder(configFile)
-	jsonParser.Decode(&config)
-	return config
-}
+// 	jsonParser := json.NewDecoder(configFile)
+// 	jsonParser.Decode(&config)
+// 	return config
+// }
 
 // func GetDb(config Config) (*gorm.DB, error) {
 // 	cfg := mysqlxx.Config{
@@ -634,43 +626,43 @@ func LoadConfiguration(file string) Config {
 // 	return db, nil
 // }
 
-func GetDbData(config Config) (*gorm.DB, *sql.DB, error) {
-	Dsn = config.Database.Username + ":" + config.Database.Password + "@tcp(" + config.Database.Host + ":" + config.Database.Port + ")/" + config.Database.DatabaseName + "?charset=utf8mb4&parseTime=True&loc=Local"
+// func GetDbData(config Config) (*gorm.DB, *sql.DB, error) {
+// 	Dsn = config.Database.Username + ":" + config.Database.Password + "@tcp(" + config.Database.Host + ":" + config.Database.Port + ")/" + config.Database.DatabaseName + "?charset=utf8mb4&parseTime=True&loc=Local"
 
-	return actualGetDbData()
-}
+// 	return actualGetDbData()
+// }
 
-func GetDbDataWithoutConfig() (*gorm.DB, *sql.DB, error) {
-	return actualGetDbData()
-}
+// func GetDbDataWithoutConfig() (*gorm.DB, *sql.DB, error) {
+// 	return actualGetDbData()
+// }
 
-func actualGetDbData() (*gorm.DB, *sql.DB, error) {
-	newLogger := logger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-		logger.Config{
-			SlowThreshold:             time.Second,  // Slow SQL threshold
-			LogLevel:                  logger.Error, // Log level
-			IgnoreRecordNotFoundError: true,         // Ignore ErrRecordNotFound error for logger
-			Colorful:                  false,        // Disable color
-		},
-	)
+// func actualGetDbData() (*gorm.DB, *sql.DB, error) {
+// 	newLogger := logger.New(
+// 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+// 		logger.Config{
+// 			SlowThreshold:             time.Second,  // Slow SQL threshold
+// 			LogLevel:                  logger.Error, // Log level
+// 			IgnoreRecordNotFoundError: true,         // Ignore ErrRecordNotFound error for logger
+// 			Colorful:                  false,        // Disable color
+// 		},
+// 	)
 
-	// Create main database DSN and open db
-	db, err := gorm.Open(mysql.Open(Dsn), &gorm.Config{
-		Logger: newLogger,
-	})
+// 	// Create main database DSN and open db
+// 	db, err := gorm.Open(mysql.Open(Dsn), &gorm.Config{
+// 		Logger: newLogger,
+// 	})
 
-	if err != nil {
-		return nil, nil, errors.New("error opening database")
-	}
+// 	if err != nil {
+// 		return nil, nil, errors.New("error opening database")
+// 	}
 
-	sqlDB, err := db.DB()
-	if err != nil {
-		return nil, nil, errors.New("error getting sql db")
-	}
+// 	sqlDB, err := db.DB()
+// 	if err != nil {
+// 		return nil, nil, errors.New("error getting sql db")
+// 	}
 
-	return db, sqlDB, nil
-}
+// 	return db, sqlDB, nil
+// }
 
 func CreateListSql(sql string, sortColumn string, sortOrder string, page int, pageSize int) string {
 	if sortColumn != "" && sortOrder != "" {
@@ -910,107 +902,107 @@ func JoinIntArray(values []int, delim string) string {
 	return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(stringValues)), delim), "[]")
 }
 
-func ReadConfig[T any](fileName string, conf T) (T, error) {
-	content, err := os.ReadFile(fileName)
-	if err != nil {
-		log.Fatal(err)
-		return conf, err
-	}
+// func ReadConfig[T any](fileName string, conf T) (T, error) {
+// 	content, err := os.ReadFile(fileName)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 		return conf, err
+// 	}
 
-	// var conf ConfigData
-	err = toml.Unmarshal(content, &conf)
+// 	// var conf ConfigData
+// 	err = toml.Unmarshal(content, &conf)
 
-	if err != nil {
-		log.Fatal(err)
-		return conf, err
-	}
+// 	if err != nil {
+// 		log.Fatal(err)
+// 		return conf, err
+// 	}
 
-	return conf, nil
-}
+// 	return conf, nil
+// }
 
-func InitData(configFolder string) (ConfigData, *gorm.DB, *sql.DB, error) {
-	var conf ConfigData
-	conf, err := ReadConfig(configFolder+"config.toml", conf)
+// func InitData(configFolder string) (ConfigData, *gorm.DB, *sql.DB, error) {
+// 	var conf ConfigData
+// 	conf, err := ReadConfig(configFolder+"config.toml", conf)
 
-	if err != nil {
-		return ConfigData{}, nil, nil, err
-	}
+// 	if err != nil {
+// 		return ConfigData{}, nil, nil, err
+// 	}
 
-	// Create database pool
-	dbPort := strconv.Itoa(conf.Database.Port)
-	dsn := conf.Database.Username + ":" + conf.Database.Password + "@tcp(" + conf.Database.Server + ":" + dbPort + ")/" + conf.Database.Dbname + "?charset=utf8mb4&parseTime=True&loc=Local"
+// 	// Create database pool
+// 	dbPort := strconv.Itoa(conf.Database.Port)
+// 	dsn := conf.Database.Username + ":" + conf.Database.Password + "@tcp(" + conf.Database.Server + ":" + dbPort + ")/" + conf.Database.Dbname + "?charset=utf8mb4&parseTime=True&loc=Local"
 
-	newLogger := logger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-		logger.Config{
-			SlowThreshold:             time.Second,  // Slow SQL threshold
-			LogLevel:                  logger.Error, // Log level
-			IgnoreRecordNotFoundError: true,         // Ignore ErrRecordNotFound error for logger
-			Colorful:                  false,        // Disable color
-		},
-	)
+// 	newLogger := logger.New(
+// 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+// 		logger.Config{
+// 			SlowThreshold:             time.Second,  // Slow SQL threshold
+// 			LogLevel:                  logger.Error, // Log level
+// 			IgnoreRecordNotFoundError: true,         // Ignore ErrRecordNotFound error for logger
+// 			Colorful:                  false,        // Disable color
+// 		},
+// 	)
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: newLogger,
-	})
+// 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+// 		Logger: newLogger,
+// 	})
 
-	if err != nil {
-		return ConfigData{}, nil, nil, err
-	}
+// 	if err != nil {
+// 		return ConfigData{}, nil, nil, err
+// 	}
 
-	sqlDB, err := db.DB()
-	if err != nil {
-		return ConfigData{}, nil, nil, err
-	}
+// 	sqlDB, err := db.DB()
+// 	if err != nil {
+// 		return ConfigData{}, nil, nil, err
+// 	}
 
-	if err = sqlDB.Ping(); err != nil {
-		return ConfigData{}, nil, nil, err
-	}
+// 	if err = sqlDB.Ping(); err != nil {
+// 		return ConfigData{}, nil, nil, err
+// 	}
 
-	return conf, db, sqlDB, nil
-}
+// 	return conf, db, sqlDB, nil
+// }
 
-func InitPostgresData(configFolder string) (ConfigData, *gorm.DB, *sql.DB, error) {
-	var conf ConfigData
-	conf, err := ReadConfig(configFolder+"config.toml", conf)
+// func InitPostgresData(configFolder string) (ConfigData, *gorm.DB, *sql.DB, error) {
+// 	var conf ConfigData
+// 	conf, err := ReadConfig(configFolder+"config.toml", conf)
 
-	if err != nil {
-		return ConfigData{}, nil, nil, err
-	}
+// 	if err != nil {
+// 		return ConfigData{}, nil, nil, err
+// 	}
 
-	// Create database pool
-	dbPort := strconv.Itoa(conf.Database.Port)
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Europe/Rome", conf.Database.Server, conf.Database.Username, conf.Database.Password, conf.Database.Dbname, dbPort)
+// 	// Create database pool
+// 	dbPort := strconv.Itoa(conf.Database.Port)
+// 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Europe/Rome", conf.Database.Server, conf.Database.Username, conf.Database.Password, conf.Database.Dbname, dbPort)
 
-	newLogger := logger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-		logger.Config{
-			SlowThreshold:             time.Second,  // Slow SQL threshold
-			LogLevel:                  logger.Error, // Log level
-			IgnoreRecordNotFoundError: true,         // Ignore ErrRecordNotFound error for logger
-			Colorful:                  false,        // Disable color
-		},
-	)
+// 	newLogger := logger.New(
+// 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+// 		logger.Config{
+// 			SlowThreshold:             time.Second,  // Slow SQL threshold
+// 			LogLevel:                  logger.Error, // Log level
+// 			IgnoreRecordNotFoundError: true,         // Ignore ErrRecordNotFound error for logger
+// 			Colorful:                  false,        // Disable color
+// 		},
+// 	)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: newLogger,
-	})
+// 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+// 		Logger: newLogger,
+// 	})
 
-	if err != nil {
-		return ConfigData{}, nil, nil, err
-	}
+// 	if err != nil {
+// 		return ConfigData{}, nil, nil, err
+// 	}
 
-	sqlDB, err := db.DB()
-	if err != nil {
-		return ConfigData{}, nil, nil, err
-	}
+// 	sqlDB, err := db.DB()
+// 	if err != nil {
+// 		return ConfigData{}, nil, nil, err
+// 	}
 
-	if err = sqlDB.Ping(); err != nil {
-		return ConfigData{}, nil, nil, err
-	}
+// 	if err = sqlDB.Ping(); err != nil {
+// 		return ConfigData{}, nil, nil, err
+// 	}
 
-	return conf, db, sqlDB, nil
-}
+// 	return conf, db, sqlDB, nil
+// }
 
 func CompareDates(t1 time.Time, t2 time.Time) bool {
 	return t1.Truncate(24 * time.Hour).Equal(t2.Truncate(24 * time.Hour))
@@ -1041,55 +1033,55 @@ func CompareDates(t1 time.Time, t2 time.Time) bool {
 // 	return translations
 // }
 
-func InitTranslationsAtStartupTime(db *gorm.DB, localeFilePosition string) (map[string]interface{}, error) {
-	var locales []Locale
-	sql := `SELECT * FROM locales;`
-	result := db.Raw(sql).Scan(&locales)
+// func InitTranslationsAtStartupTime(db *gorm.DB, localeFilePosition string) (map[string]interface{}, error) {
+// 	var locales []Locale
+// 	sql := `SELECT * FROM locales;`
+// 	result := db.Raw(sql).Scan(&locales)
 
-	if result.Error != nil {
-		return nil, errors.New("can't open locale table")
-	}
+// 	if result.Error != nil {
+// 		return nil, errors.New("can't open locale table")
+// 	}
 
-	translations := make(map[string]interface{})
-	for _, locale := range locales {
-		translations[locale.Lang] = make(map[string]interface{})
-	}
+// 	translations := make(map[string]interface{})
+// 	for _, locale := range locales {
+// 		translations[locale.Lang] = make(map[string]interface{})
+// 	}
 
-	var localeStrings []LocaleString
-	sql = `SELECT * FROM locale_strings;`
-	result = db.Raw(sql).Scan(&localeStrings)
-	if result.Error != nil {
-		return nil, errors.New("can't open locale table")
-	}
+// 	var localeStrings []LocaleString
+// 	sql = `SELECT * FROM locale_strings;`
+// 	result = db.Raw(sql).Scan(&localeStrings)
+// 	if result.Error != nil {
+// 		return nil, errors.New("can't open locale table")
+// 	}
 
-	for _, localeString := range localeStrings {
-		var jsonData []Translation
-		err := json.Unmarshal(localeString.JsonData, &jsonData)
+// 	for _, localeString := range localeStrings {
+// 		var jsonData []Translation
+// 		err := json.Unmarshal(localeString.JsonData, &jsonData)
 
-		if err != nil {
-			return nil, err
-		}
+// 		if err != nil {
+// 			return nil, err
+// 		}
 
-		for _, jsonElement := range jsonData {
-			elements, ok := translations[jsonElement.LangCode].(map[string]interface{})
-			if !ok {
-				return nil, err
-			}
-			elements[localeString.ElementKey] = jsonElement.LangValue
-			translations[jsonElement.LangCode] = elements
-		}
-	}
+// 		for _, jsonElement := range jsonData {
+// 			elements, ok := translations[jsonElement.LangCode].(map[string]interface{})
+// 			if !ok {
+// 				return nil, err
+// 			}
+// 			elements[localeString.ElementKey] = jsonElement.LangValue
+// 			translations[jsonElement.LangCode] = elements
+// 		}
+// 	}
 
-	return translations, nil
-}
+// 	return translations, nil
+// }
 
 func JoinIntArrayToString(intArray []int, delim string) string {
 	return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(intArray)), delim), "[]")
 }
 
-func (writer LogWriter) Write(bytes []byte) (int, error) {
-	return fmt.Print(time.Now().Format("2006-01-02 15:04:05") + " " + string(bytes))
-}
+// func (writer LogWriter) Write(bytes []byte) (int, error) {
+// 	return fmt.Print(time.Now().Format("2006-01-02 15:04:05") + " " + string(bytes))
+// }
 
 func GetIntPointerValue(data any, fieldName string) *int {
 	pointToStruct := reflect.ValueOf(data)
@@ -1250,48 +1242,48 @@ func GetCustomErrorFromAnotherError(err error, message string, code int) error {
 	}
 }
 
-func ConfigApp(mode int) (*gorm.DB, *sql.DB, error) {
-	log.SetFlags(log.Lshortfile)
-	log.SetOutput(new(LogWriter))
+// func ConfigApp(mode int) (*gorm.DB, *sql.DB, error) {
+// 	log.SetFlags(log.Lshortfile)
+// 	log.SetOutput(new(LogWriter))
 
-	// Path of executable, first attempt
-	ex, err := os.Executable()
-	if err != nil {
-		panic(err)
-	}
-	exPath := filepath.Dir(ex)
-	exPath = fmt.Sprintf("%s/", exPath)
+// 	// Path of executable, first attempt
+// 	ex, err := os.Executable()
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	exPath := filepath.Dir(ex)
+// 	exPath = fmt.Sprintf("%s/", exPath)
 
-	_, err = os.Stat(exPath + "/config.toml")
+// 	_, err = os.Stat(exPath + "/config.toml")
 
-	var configFolder *string
-	// No path has been found, select default
-	if err != nil {
-		configFolder = flag.String("configfolder", "./", "Configuration folder TOML file")
-		flag.Parse()
-	} else {
-		configFolder = &exPath
-	}
+// 	var configFolder *string
+// 	// No path has been found, select default
+// 	if err != nil {
+// 		configFolder = flag.String("configfolder", "./", "Configuration folder TOML file")
+// 		flag.Parse()
+// 	} else {
+// 		configFolder = &exPath
+// 	}
 
-	var db *gorm.DB
-	var sqlDB *sql.DB
+// 	var db *gorm.DB
+// 	var sqlDB *sql.DB
 
-	if mode == 0 {
-		_, db, sqlDB, err = InitData(*configFolder)
+// 	if mode == 0 {
+// 		_, db, sqlDB, err = InitData(*configFolder)
 
-	} else {
-		_, db, sqlDB, err = InitPostgresData(*configFolder)
-	}
+// 	} else {
+// 		_, db, sqlDB, err = InitPostgresData(*configFolder)
+// 	}
 
-	if err != nil {
-		log.Println(err)
-		return nil, nil, err
-	}
+// 	if err != nil {
+// 		log.Println(err)
+// 		return nil, nil, err
+// 	}
 
-	// defer sqlDB.Close()
+// 	// defer sqlDB.Close()
 
-	return db, sqlDB, nil
-}
+// 	return db, sqlDB, nil
+// }
 
 func AesGetIv(key []byte) ([]byte, error) {
 	c, err := aes.NewCipher(key)

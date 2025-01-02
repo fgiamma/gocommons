@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/fgiamma/gocommons"
+	"gorm.io/gorm"
 )
 
 type S3Data struct {
@@ -254,4 +255,16 @@ func DownloadFromDoS3(s3data DoS3Data, objectName string) (string, error) {
 	}
 
 	return fileName, nil
+}
+
+func ValidateToken(db *gorm.DB, token string) bool {
+	var tokenId int
+	sql := "SELECT id FROM tokens WHERE uniqueid=? AND expiration_date > NOW();"
+	db.Raw(sql, token).Scan(&tokenId)
+
+	if tokenId == 0 {
+		return false
+	} else {
+		return true
+	}
 }
