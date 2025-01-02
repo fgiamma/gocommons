@@ -1,8 +1,10 @@
-package db
+package godb
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -13,20 +15,19 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/fgiamma/gocommons/gohttp"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
+const MYSQLAPP = 0
+const POSTGRESQLAPP = 1
+
 type CheckResult struct {
 	Key         string `json:"key"`
 	ReturnValue bool   `json:"return_value"`
-}
-
-type ResponseObject struct {
-	Code string      `json:"code"`
-	Data interface{} `json:"data"`
 }
 
 type Check struct {
@@ -87,6 +88,22 @@ type HttpData struct {
 	Port  int `toml:"port"`
 	Port2 int `toml:"port2"`
 	Ssl   int `toml:"ssl"`
+}
+
+type JSONB map[string]interface{}
+
+// Value Marshal
+func (jsonField JSONB) Value() (driver.Value, error) {
+	return json.Marshal(jsonField)
+}
+
+// Scan Unmarshal
+func (jsonField *JSONB) Scan(value interface{}) error {
+	data, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+	return json.Unmarshal(data, &jsonField)
 }
 
 func ReadConfig[T any](fileName string, conf T) (T, error) {
@@ -259,7 +276,7 @@ func CheckMultipleValues(db *gorm.DB, tableName string, w http.ResponseWriter, r
 	var checks CheckArray
 	err := json.NewDecoder(r.Body).Decode(&checks)
 	if err != nil {
-		WriteInvalidResponse(w, "ko", "Error decoding params")
+		gohttp.WriteInvalidResponse(w, "ko", "Error decoding params")
 		return
 	}
 
@@ -273,7 +290,7 @@ func CheckMultipleValues(db *gorm.DB, tableName string, w http.ResponseWriter, r
 	for i := 0; i < len(checks.Checks); i++ {
 		item := checks.Checks[i]
 		if item.Key == "" || item.Value == "" {
-			WriteInvalidResponse(w, "ko", "Error evaluating items")
+			gohttp.WriteInvalidResponse(w, "ko", "Error evaluating items")
 			return
 		}
 
@@ -298,27 +315,5 @@ func CheckMultipleValues(db *gorm.DB, tableName string, w http.ResponseWriter, r
 	returnObject := make(map[string]interface{})
 	returnObject["element"] = checkResults
 
-	WriteValidResponse(w, "ok", returnObject)
-}
-
-func WriteResponse(w http.ResponseWriter, ro any, status int) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	// w.WriteHeader(http.StatusOK)
-	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(ro)
-}
-
-func WriteValidResponse(w http.ResponseWriter, code string, message any) {
-	var ro *ResponseObject = new(ResponseObject)
-	ro.Code = code
-	ro.Data = message
-	WriteResponse(w, *ro, http.StatusOK)
-}
-
-func WriteInvalidResponse(w http.ResponseWriter, code string, message string) {
-	var ro *ResponseObject = new(ResponseObject)
-	ro.Code = code
-	ro.Data = message
-	WriteResponse(w, *ro, http.StatusOK)
+	gohttp.WriteValidResponse(w, "ok", returnObject)
 }

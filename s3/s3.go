@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/fgiamma/gocommons"
+	"github.com/fgiamma/gocommons/uids"
 	"gorm.io/gorm"
 )
 
@@ -99,7 +99,7 @@ func DownloadFromS3(s3data S3Data, objectName string) (string, error) {
 	pointPosition := strings.LastIndex(objectName, ".")
 	extension := objectName[pointPosition:]
 
-	fileName := fmt.Sprintf("/tmp/%s%s", gocommons.GetUid(), extension)
+	fileName := fmt.Sprintf("/tmp/%s%s", uids.GetUid(), extension)
 
 	defer result.Body.Close()
 	file, err := os.Create(fileName)
@@ -236,7 +236,7 @@ func DownloadFromDoS3(s3data DoS3Data, objectName string) (string, error) {
 	pointPosition := strings.LastIndex(objectName, ".")
 	extension := objectName[pointPosition:]
 
-	fileName := fmt.Sprintf("/tmp/%s%s", gocommons.GetUid(), extension)
+	fileName := fmt.Sprintf("/tmp/%s%s", uids.GetUid(), extension)
 
 	defer result.Body.Close()
 	file, err := os.Create(fileName)

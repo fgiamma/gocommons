@@ -26,8 +26,6 @@ import (
 	"strings"
 	"time"
 
-	"database/sql/driver"
-
 	"github.com/alexedwards/scs/v2"
 	"github.com/google/uuid"
 	"github.com/oklog/ulid"
@@ -37,15 +35,15 @@ import (
 	// mysqlxx "github.com/go-sql-driver/mysql"
 )
 
-type ResponseObject struct {
-	Code string      `json:"code"`
-	Data interface{} `json:"data"`
-}
+// type ResponseObject struct {
+// 	Code string      `json:"code"`
+// 	Data interface{} `json:"data"`
+// }
 
-type ListResponseObject struct {
-	TotalRows   int         `json:"totalRows"`
-	CurrentPage interface{} `json:"currentPage"`
-}
+// type ListResponseObject struct {
+// 	TotalRows   int         `json:"totalRows"`
+// 	CurrentPage interface{} `json:"currentPage"`
+// }
 
 // type Check struct {
 // 	Key   string `json:"key"`
@@ -208,21 +206,21 @@ func (t *Telegram) SendMessage(messageString string) error {
 	return nil
 }
 
-type JSONB map[string]interface{}
+// type JSONB map[string]interface{}
 
-// Value Marshal
-func (jsonField JSONB) Value() (driver.Value, error) {
-	return json.Marshal(jsonField)
-}
+// // Value Marshal
+// func (jsonField JSONB) Value() (driver.Value, error) {
+// 	return json.Marshal(jsonField)
+// }
 
-// Scan Unmarshal
-func (jsonField *JSONB) Scan(value interface{}) error {
-	data, ok := value.([]byte)
-	if !ok {
-		return errors.New("type assertion to []byte failed")
-	}
-	return json.Unmarshal(data, &jsonField)
-}
+// // Scan Unmarshal
+// func (jsonField *JSONB) Scan(value interface{}) error {
+// 	data, ok := value.([]byte)
+// 	if !ok {
+// 		return errors.New("type assertion to []byte failed")
+// 	}
+// 	return json.Unmarshal(data, &jsonField)
+// }
 
 var DateLayout string = "2006-01-02 15:04:05"
 var CompactDateLayout string = "20060102150405"
@@ -297,26 +295,26 @@ func GetMD5Hash(text string) string {
 	return hex.EncodeToString(hash[:])
 }
 
-func AllowCors(w *http.ResponseWriter) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	(*w).Header().Set("Access-Control-Allow-Headers", "token, Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-}
+// func AllowCors(w *http.ResponseWriter) {
+// 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+// 	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+// 	(*w).Header().Set("Access-Control-Allow-Headers", "token, Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+// }
 
-func WriteResponse(w http.ResponseWriter, ro any, status int) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	// w.WriteHeader(http.StatusOK)
-	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(ro)
-}
+// func WriteResponse(w http.ResponseWriter, ro any, status int) {
+// 	w.Header().Set("Content-Type", "application/json")
+// 	w.Header().Set("Access-Control-Allow-Origin", "*")
+// 	// w.WriteHeader(http.StatusOK)
+// 	w.WriteHeader(status)
+// 	json.NewEncoder(w).Encode(ro)
+// }
 
-func WriteListResponse(w http.ResponseWriter, lro ListResponseObject) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(lro)
-}
+// func WriteListResponse(w http.ResponseWriter, lro ListResponseObject) {
+// 	w.Header().Set("Content-Type", "application/json")
+// 	w.Header().Set("Access-Control-Allow-Origin", "*")
+// 	w.WriteHeader(http.StatusOK)
+// 	json.NewEncoder(w).Encode(lro)
+// }
 
 func SendEmailWithPort(smtpServer string, smtpPort string, smtpUser string, smtpPassword string, from string, to []string, subject string, message string) error {
 	addr := smtpServer + ":" + smtpPort
@@ -355,26 +353,26 @@ func GetJsonFromFile(fileName string) ([]byte, error) {
 	return jsonData, err
 }
 
-func WriteInvalidResponse(w http.ResponseWriter, code string, message string) {
-	var ro *ResponseObject = new(ResponseObject)
-	ro.Code = code
-	ro.Data = message
-	WriteResponse(w, *ro, http.StatusOK)
-}
+// func WriteInvalidResponse(w http.ResponseWriter, code string, message string) {
+// 	var ro *ResponseObject = new(ResponseObject)
+// 	ro.Code = code
+// 	ro.Data = message
+// 	WriteResponse(w, *ro, http.StatusOK)
+// }
 
-func WriteInvalidResponseWithStatus(w http.ResponseWriter, code string, message string, status int) {
-	var ro *ResponseObject = new(ResponseObject)
-	ro.Code = code
-	ro.Data = message
-	WriteResponse(w, *ro, status)
-}
+// func WriteInvalidResponseWithStatus(w http.ResponseWriter, code string, message string, status int) {
+// 	var ro *ResponseObject = new(ResponseObject)
+// 	ro.Code = code
+// 	ro.Data = message
+// 	WriteResponse(w, *ro, status)
+// }
 
-func WriteValidResponse(w http.ResponseWriter, code string, message any) {
-	var ro *ResponseObject = new(ResponseObject)
-	ro.Code = code
-	ro.Data = message
-	WriteResponse(w, *ro, http.StatusOK)
-}
+// func WriteValidResponse(w http.ResponseWriter, code string, message any) {
+// 	var ro *ResponseObject = new(ResponseObject)
+// 	ro.Code = code
+// 	ro.Data = message
+// 	WriteResponse(w, *ro, http.StatusOK)
+// }
 
 // func GetDbParameter(db *gorm.DB, parameterName string) string {
 // 	var parameterValue string
