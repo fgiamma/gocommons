@@ -296,6 +296,8 @@ func GetUidList(numberOfElements int) []string {
 }
 
 func GetUid7() string {
+	uuid.EnableRandPool()
+
 	uniqueID, err := uuid.NewV7()
 	if err != nil {
 		return ""
@@ -305,9 +307,16 @@ func GetUid7() string {
 }
 
 func GetUid7List(numberOfElements int) []string {
+	uuid.EnableRandPool()
+
 	uids := make([]string, numberOfElements)
 	for i := 0; i < numberOfElements; i++ {
-		uids[i] = GetUid7()
+		uniqueID, err := uuid.NewV7()
+		if err != nil {
+			uids[i] = ""
+		}
+
+		uids[i] = uniqueID.String()
 	}
 
 	return uids
