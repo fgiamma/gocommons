@@ -295,6 +295,24 @@ func GetUidList(numberOfElements int) []string {
 	return uids
 }
 
+func GetUid7() string {
+	uniqueID, err := uuid.NewV7()
+	if err != nil {
+		return ""
+	}
+
+	return uniqueID.String()
+}
+
+func GetUid7List(numberOfElements int) []string {
+	uids := make([]string, numberOfElements)
+	for i := 0; i < numberOfElements; i++ {
+		uids[i] = GetUid7()
+	}
+
+	return uids
+}
+
 func GetUlid() string {
 	ulid := ulid.MustNew(ulid.Now(), cryptorand.Reader)
 	return ulid.String()
