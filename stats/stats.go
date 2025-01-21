@@ -74,3 +74,27 @@ func (s *Stats) GetMode(values []int) int {
 
 	return maxCount
 }
+
+func (app *Stats) FindMin(numbers []int) int {
+	if len(numbers) == 0 {
+		return 0
+	}
+
+	minimum := numbers[0]
+	for _, num := range numbers[1:] {
+		minimum = min(minimum, num)
+	}
+	return minimum
+}
+
+func (app *Stats) FindMax(numbers []int) int {
+	if len(numbers) == 0 {
+		return 0
+	}
+
+	maximum := numbers[0]
+	for _, num := range numbers[1:] {
+		maximum = max(maximum, num)
+	}
+	return maximum
+}
