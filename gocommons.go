@@ -29,6 +29,7 @@ import (
 
 	"net/http"
 	"net/smtp"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -253,6 +254,18 @@ func (jsonField *JSONB) Scan(value interface{}) error {
 		return errors.New("type assertion to []byte failed")
 	}
 	return json.Unmarshal(data, &jsonField)
+}
+
+type RedditSearch struct {
+	ClientID     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+	UserAgent    string `json:"user_agent"`
+	PostLimit    int    `json:"post_limit"`
+}
+
+type RedditResult struct {
+	Title string `json:"title"`
+	URL   string `json:"url"`
 }
 
 var DateLayout string = "2006-01-02 15:04:05"
@@ -1713,4 +1726,91 @@ func DownloadFromDoS3(s3data DoS3Data, objectName string) (string, error) {
 	}
 
 	return fileName, nil
+}
+
+func (rs *RedditSearch) GetAccessToken() (string, error) {
+	data := url.Values{}
+	data.Set("grant_type", "client_credentials")
+
+	req, err := http.NewRequest(
+		"POST",
+		"https://www.reddit.com/api/v1/access_token",
+		strings.NewReader(data.Encode()),
+	)
+	if err != nil {
+		return "", err
+	}
+
+	req.SetBasicAuth(rs.ClientID, rs.ClientSecret)
+	req.Header.Set("User-Agent", rs.UserAgent)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+	var result map[string]interface{}
+	json.Unmarshal(body, &result)
+
+	token, ok := result["access_token"].(string)
+	if !ok {
+		return "", fmt.Errorf("failed to get access token")
+	}
+
+	return token, nil
+}
+
+func (rs *RedditSearch) SearchReddit(query string, token string) ([]RedditResult, error) {
+	url := fmt.Sprintf(
+		"https://oauth.reddit.com/r/all/search?q=%s&limit=%d",
+		url.QueryEscape(query), rs.PostLimit,
+	)
+
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("User-Agent", rs.UserAgent)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+	var result map[string]interface{}
+	json.Unmarshal(body, &result)
+
+	posts, ok := result["data"].(map[string]interface{})["children"].([]interface{})
+	if !ok {
+		return nil, err
+	}
+
+	results := make([]RedditResult, 0)
+	for _, p := range posts {
+		postData := p.(map[string]interface{})["data"].(map[string]interface{})
+
+		result := RedditResult{
+			Title: postData["title"].(string),
+			URL:   postData["url"].(string),
+		}
+
+		results = append(results, result)
+		// fmt.Printf("%s - %s\n", postData["title"], postData["url"])
+	}
+
+	return results, nil
+}
+
+func NewRedditSearch(clientID, clientSecret, userAgent string, postLimit int) *RedditSearch {
+	return &RedditSearch{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		UserAgent:    userAgent,
+		PostLimit:    postLimit,
+	}
 }
