@@ -449,7 +449,7 @@ func WriteValidResponse(w http.ResponseWriter, code string, message any) {
 
 func GetDbParameter(db *gorm.DB, parameterName string) string {
 	var parameterValue string
-	sql := "SELECT parameter_value FROM parameters WHERE parameter_name=?;"
+	sql := "SELECT COALESCE(parameter_value, '') FROM parameters WHERE parameter_name=?;"
 	db.Raw(sql, parameterName).Scan(&parameterValue)
 
 	return parameterValue
@@ -457,7 +457,7 @@ func GetDbParameter(db *gorm.DB, parameterName string) string {
 
 func GetIntDbParameter(db *gorm.DB, parameterName string) int {
 	var parameterValueString sql.NullString
-	sql := `SELECT parameter_value FROM parameters WHERE parameter_name=?;`
+	sql := `SELECT COALESCE(parameter_value, '') FROM parameters WHERE parameter_name=?;`
 	db.Raw(sql, parameterName).Scan(&parameterValueString)
 
 	parameterValue, err := strconv.Atoi(parameterValueString.String)
