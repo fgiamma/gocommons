@@ -1814,3 +1814,52 @@ func NewRedditSearch(clientID, clientSecret, userAgent string, postLimit int) *R
 		PostLimit:    postLimit,
 	}
 }
+
+func CheckFields(data interface{}, fields []string) (bool, []string) {
+	val := reflect.ValueOf(data)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+
+	if val.Kind() != reflect.Struct {
+		panic("CheckFields: input is not a struct or pointer to struct")
+	}
+
+	var invalidFields []string
+
+	for _, fieldName := range fields {
+		fieldVal := val.FieldByName(fieldName)
+		if !fieldVal.IsValid() {
+			invalidFields = append(invalidFields, fieldName+" (not found)")
+			continue
+		}
+
+		if isZero(fieldVal) {
+			invalidFields = append(invalidFields, fieldName)
+		}
+	}
+
+	return len(invalidFields) == 0, invalidFields
+}
+
+func isZero(v reflect.Value) bool {
+	switch v.Kind() {
+	case reflect.String:
+		return v.String() == ""
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return v.Int() == 0
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return v.Uint() == 0
+	case reflect.Bool:
+		return !v.Bool()
+	case reflect.Float32, reflect.Float64:
+		return v.Float() == 0.0
+	case reflect.Struct:
+		if t, ok := v.Interface().(time.Time); ok {
+			return t.IsZero()
+		}
+		return reflect.DeepEqual(v.Interface(), reflect.Zero(v.Type()).Interface())
+	default:
+		return v.IsZero()
+	}
+}
