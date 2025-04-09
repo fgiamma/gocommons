@@ -1863,3 +1863,7 @@ func isZero(v reflect.Value) bool {
 		return v.IsZero()
 	}
 }
+
+func IntPtr(i int) *int {
+	return &i
+}
