@@ -1513,6 +1513,15 @@ func PutFile(c context.Context, api S3PutObjectAPI, input *s3.PutObjectInput) (*
 }
 
 func SendToS3(s3data S3Data, objectName string) error {
+	fileName := fmt.Sprintf("/tmp/%s", objectName)
+	return actualSendToS3(s3data, fileName, objectName)
+}
+
+func SendToS3Ext(s3data S3Data, fileName string, objectName string) error {
+	return actualSendToS3(s3data, fileName, objectName)
+}
+
+func actualSendToS3(s3data S3Data, fileName string, objectName string) error {
 	cfg, err := config.LoadDefaultConfig(
 		context.TODO(), config.WithRegion(s3data.AwsRegionName),
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(s3data.AwsAccessKeyId, s3data.AwsSecretAccessKey, "")))
@@ -1524,7 +1533,7 @@ func SendToS3(s3data S3Data, objectName string) error {
 	// Create an Amazon S3 service client
 	client := s3.NewFromConfig(cfg)
 
-	file, err := os.Open("/tmp/" + objectName)
+	file, err := os.Open(fileName)
 
 	if err != nil {
 		return errors.New("unable to open file")
