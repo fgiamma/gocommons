@@ -1536,7 +1536,8 @@ func actualSendToS3(s3data S3Data, fileName string, objectName string) error {
 	file, err := os.Open(fileName)
 
 	if err != nil {
-		return errors.New("unable to open file")
+		return fmt.Errorf("%s -> unable to open file", err)
+		// return errors.New("unable to open file")
 	}
 
 	defer file.Close()
@@ -1549,7 +1550,8 @@ func actualSendToS3(s3data S3Data, fileName string, objectName string) error {
 
 	_, err = PutFile(context.TODO(), client, input)
 	if err != nil {
-		return errors.New("unable to upload file")
+		return fmt.Errorf("%s -> unable to upload file", err)
+		// return errors.New("unable to upload file")
 	}
 
 	return nil
