@@ -991,7 +991,7 @@ func ReadConfig[T any](fileName string, conf T) (T, error) {
 	return conf, nil
 }
 
-func InitData(configFolder string) (ConfigData, *gorm.DB, *sql.DB, error) {
+func InitData(configFolder string, mode bool) (ConfigData, *gorm.DB, *sql.DB, error) {
 	var conf ConfigData
 	conf, err := ReadConfig(configFolder+"config.toml", conf)
 
@@ -1001,7 +1001,11 @@ func InitData(configFolder string) (ConfigData, *gorm.DB, *sql.DB, error) {
 
 	// Create database pool
 	dbPort := strconv.Itoa(conf.Database.Port)
-	dsn := conf.Database.Username + ":" + conf.Database.Password + "@tcp(" + conf.Database.Server + ":" + dbPort + ")/" + conf.Database.Dbname + "?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True", conf.Database.Username, conf.Database.Password, conf.Database.Server, dbPort, conf.Database.Dbname)
+	if mode {
+		dsn = fmt.Sprintf("%s&loc=Local", dsn)
+	}
+	// dsn := conf.Database.Username + ":" + conf.Database.Password + "@tcp(" + conf.Database.Server + ":" + dbPort + ")/" + conf.Database.Dbname + "?charset=utf8mb4&parseTime=True&loc=Local"
 
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
@@ -1314,6 +1318,10 @@ func GetCustomErrorFromAnotherError(err error, message string, code int) error {
 }
 
 func ConfigApp(mode int) (*gorm.DB, *sql.DB, error) {
+	return ActualConfigApp(mode, true)
+}
+
+func ActualConfigApp(mode int, localTime bool) (*gorm.DB, *sql.DB, error) {
 	log.SetFlags(log.Lshortfile)
 	log.SetOutput(new(LogWriter))
 
@@ -1339,8 +1347,9 @@ func ConfigApp(mode int) (*gorm.DB, *sql.DB, error) {
 	var db *gorm.DB
 	var sqlDB *sql.DB
 
+	// Local time is handled only for mysql. In postgresql Europe/Rome is set in a fixed way
 	if mode == 0 {
-		_, db, sqlDB, err = InitData(*configFolder)
+		_, db, sqlDB, err = InitData(*configFolder, localTime)
 
 	} else {
 		_, db, sqlDB, err = InitPostgresData(*configFolder)
