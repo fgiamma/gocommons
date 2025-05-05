@@ -991,7 +991,11 @@ func ReadConfig[T any](fileName string, conf T) (T, error) {
 	return conf, nil
 }
 
-func InitData(configFolder string, mode bool) (ConfigData, *gorm.DB, *sql.DB, error) {
+func InitData(configFolder string) (ConfigData, *gorm.DB, *sql.DB, error) {
+	return ActualInitData(configFolder, true)
+}
+
+func ActualInitData(configFolder string, mode bool) (ConfigData, *gorm.DB, *sql.DB, error) {
 	var conf ConfigData
 	conf, err := ReadConfig(configFolder+"config.toml", conf)
 
@@ -1349,7 +1353,7 @@ func ActualConfigApp(mode int, localTime bool) (*gorm.DB, *sql.DB, error) {
 
 	// Local time is handled only for mysql. In postgresql Europe/Rome is set in a fixed way
 	if mode == 0 {
-		_, db, sqlDB, err = InitData(*configFolder, localTime)
+		_, db, sqlDB, err = ActualInitData(*configFolder, localTime)
 
 	} else {
 		_, db, sqlDB, err = InitPostgresData(*configFolder)
