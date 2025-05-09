@@ -1011,8 +1011,6 @@ func ActualInitData(configFolder string, mode bool) (ConfigData, *gorm.DB, *sql.
 	}
 	// dsn := conf.Database.Username + ":" + conf.Database.Password + "@tcp(" + conf.Database.Server + ":" + dbPort + ")/" + conf.Database.Dbname + "?charset=utf8mb4&parseTime=True&loc=Local"
 
-	log.Println("I have got DNS:", dsn)
-
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
 		logger.Config{
