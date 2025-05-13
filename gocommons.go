@@ -13,6 +13,7 @@ import (
 	"errors"
 	"flag"
 	"io"
+	"log/slog"
 	"path/filepath"
 	"reflect"
 	"regexp"
@@ -1890,4 +1891,43 @@ func isZero(v reflect.Value) bool {
 
 func IntPtr(i int) *int {
 	return &i
+}
+
+type CustomHandler struct {
+	slog.Handler
+	HandlerOpts *slog.HandlerOptions
+}
+
+func (h *CustomHandler) Handle(ctx context.Context, r slog.Record) error {
+	if r.Level < h.HandlerOpts.Level.Level() {
+		return nil
+	}
+
+	// Custom timestamp format
+	timestamp := r.Time.Format("2006-01-02 15:04:05")
+
+	// Build message manually
+	fmt.Fprintf(os.Stdout, "%s %s %s", timestamp, r.Level.String(), r.Message)
+
+	// Print attributes
+	r.Attrs(func(a slog.Attr) bool {
+		fmt.Fprintf(os.Stdout, " %s=%v", a.Key, a.Value)
+		return true // continue iteration
+	})
+
+	fmt.Fprintln(os.Stdout)
+	return nil
+}
+
+func SetSLog() {
+	// Base handler is unused but required by interface
+	baseHandler := slog.NewTextHandler(os.Stdout, nil)
+
+	handlerOpts := &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}
+
+	// Custom handler
+	logger := slog.New(&CustomHandler{Handler: baseHandler, HandlerOpts: handlerOpts})
+	slog.SetDefault(logger)
 }
