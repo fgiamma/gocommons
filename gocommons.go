@@ -1930,34 +1930,26 @@ func SetSLog(logLevel slog.Level) {
 	slog.SetDefault(logger)
 }
 
-type CustomDateTime struct {
-	time.Time
+type JSONTime time.Time
+
+func (t JSONTime) MarshalJSON() ([]byte, error) {
+	stamp := "\"" + time.Time(t).Format("2006-01-02 15:04:05") + "\""
+	return []byte(stamp), nil
 }
 
-func (t *CustomDateTime) UnmarshalJSON(b []byte) (err error) {
-	date, err := time.Parse(`"2006-01-02 15:04:05"`, string(b))
+func (t *JSONTime) UnmarshalJSON(b []byte) error {
+	parsed, err := time.Parse(`"`+"2006-01-02 15:04:05"+`"`, string(b))
 	if err != nil {
 		return err
 	}
-	t.Time = date
-	return
-}
-
-// Scan --> tells GORM how to receive from the database
-func (j *CustomDateTime) Scan(value interface{}) error {
-	myDate, ok := value.(time.Time)
-	if !ok {
-		return errors.New(fmt.Sprint("Failed to unmarshal CustomDateTime value:", value))
-	}
-
-	*j = CustomDateTime{myDate}
-
+	*t = JSONTime(parsed)
 	return nil
 }
 
-// Value -> tells GORM how to save into the database
-func (j CustomDateTime) Value() (driver.Value, error) {
-	myDate := j.Format("2006-01-02 15:04:05")
-	return myDate, nil
-	// return j.MarshalText()
+func (t JSONTime) String() string {
+	return time.Time(t).Format("2006-01-02 15:04:05")
+}
+
+func (t JSONTime) Time() time.Time {
+	return time.Time(t)
 }
