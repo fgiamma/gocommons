@@ -1899,10 +1899,6 @@ type CustomHandler struct {
 }
 
 func (h *CustomHandler) Handle(ctx context.Context, r slog.Record) error {
-	if r.Level < h.HandlerOpts.Level.Level() {
-		return nil
-	}
-
 	// Custom timestamp format
 	timestamp := r.Time.Format("2006-01-02 15:04:05")
 
@@ -1921,7 +1917,9 @@ func (h *CustomHandler) Handle(ctx context.Context, r slog.Record) error {
 
 func SetSLog(logLevel slog.Level) {
 	// Base handler is unused but required by interface
-	baseHandler := slog.NewTextHandler(os.Stdout, nil)
+	baseHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: logLevel,
+	})
 
 	handlerOpts := &slog.HandlerOptions{
 		Level: logLevel,
