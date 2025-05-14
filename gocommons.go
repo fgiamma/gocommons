@@ -1919,12 +1919,12 @@ func (h *CustomHandler) Handle(ctx context.Context, r slog.Record) error {
 	return nil
 }
 
-func SetSLog() {
+func SetSLog(logLevel slog.Level) {
 	// Base handler is unused but required by interface
 	baseHandler := slog.NewTextHandler(os.Stdout, nil)
 
 	handlerOpts := &slog.HandlerOptions{
-		Level: slog.LevelInfo,
+		Level: logLevel,
 	}
 
 	// Custom handler
