@@ -41,7 +41,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/fgiamma/gocommons/uids"
 	mysqlxx "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 	"github.com/oklog/ulid"
@@ -289,7 +288,7 @@ func GetUid() string {
 	// Create new uniqueid
 	uuidString := uuid.NewString()
 	uuidString = strings.ToUpper(uuidString)
-	uuidString = strings.Replace(uuidString, "-", "", -1)
+	uuidString = strings.ReplaceAll(uuidString, "-", "")
 
 	now := time.Now()
 	nanoSeconds := now.UnixNano()
@@ -324,7 +323,7 @@ func GetUid7List(numberOfElements int) []string {
 	uuid.EnableRandPool()
 
 	uids := make([]string, numberOfElements)
-	for i := 0; i < numberOfElements; i++ {
+	for i := range numberOfElements {
 		uniqueID, err := uuid.NewV7()
 		if err != nil {
 			uids[i] = ""
@@ -1595,7 +1594,7 @@ func DownloadFromS3(s3data S3Data, objectName string) (string, error) {
 	pointPosition := strings.LastIndex(objectName, ".")
 	extension := objectName[pointPosition:]
 
-	fileName := fmt.Sprintf("/tmp/%s%s", uids.GetUid(), extension)
+	fileName := fmt.Sprintf("/tmp/%s%s", GetUid(), extension)
 
 	defer result.Body.Close()
 	file, err := os.Create(fileName)
@@ -1657,6 +1656,47 @@ func DeleteFromS3(s3data S3Data, objectName string) error {
 	}
 
 	_, err = DeleteS3Item(context.TODO(), client, input)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func SendToDoS3(s3data DoS3Data, fileName string, objectName string) error {
+	// Create a custom resolver for DigitalOcean Spaces
+	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...any) (aws.Endpoint, error) {
+		return aws.Endpoint{
+			URL: s3data.SpacesUrl,
+		}, nil
+	})
+
+	// Configure the AWS SDK
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion(s3data.Region),
+		config.WithEndpointResolverWithOptions(customResolver),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(s3data.AccessKey, s3data.Secret, "")),
+	)
+	if err != nil {
+		return err
+	}
+
+	// Create an Amazon S3 service client
+	client := s3.NewFromConfig(cfg)
+
+	// Open the file
+	file, err := os.Open(fileName)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Upload the file
+	_, err = client.PutObject(context.TODO(), &s3.PutObjectInput{
+		Bucket: aws.String(s3data.BucketName),
+		Key:    aws.String(objectName),
+		Body:   file,
+	})
 	if err != nil {
 		return err
 	}
@@ -1732,7 +1772,7 @@ func DownloadFromDoS3(s3data DoS3Data, objectName string) (string, error) {
 	pointPosition := strings.LastIndex(objectName, ".")
 	extension := objectName[pointPosition:]
 
-	fileName := fmt.Sprintf("/tmp/%s%s", uids.GetUid(), extension)
+	fileName := fmt.Sprintf("/tmp/%s%s", GetUid(), extension)
 
 	defer result.Body.Close()
 	file, err := os.Create(fileName)
