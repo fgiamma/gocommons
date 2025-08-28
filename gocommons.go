@@ -1993,3 +1993,27 @@ func (t JSONTime) String() string {
 func (t JSONTime) Time() time.Time {
 	return time.Time(t)
 }
+
+func GenerateKeyAndIV() ([]byte, []byte, error) {
+	key := make([]byte, 32) // AES-256 key
+	iv := make([]byte, 12)  // AES block size IV
+
+	if _, err := io.ReadFull(cryptorand.Reader, key); err != nil {
+		return nil, nil, fmt.Errorf("failed to generate key: %w", err)
+	}
+
+	if _, err := io.ReadFull(cryptorand.Reader, iv); err != nil {
+		return nil, nil, fmt.Errorf("failed to generate IV: %w", err)
+	}
+
+	return key, iv, nil
+}
+
+// GenerateIV creates a new random IV/nonce for AES-GCM (12 bytes)
+func GenerateIV() ([]byte, error) {
+	iv := make([]byte, 12) // GCM standard nonce length is 12
+	if _, err := io.ReadFull(cryptorand.Reader, iv); err != nil {
+		return nil, fmt.Errorf("failed to generate IV: %w", err)
+	}
+	return iv, nil
+}
