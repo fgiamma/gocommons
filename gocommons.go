@@ -1420,7 +1420,30 @@ func AesEncryptFixedIv(textString string, key []byte, nonce []byte) (string, err
 	encryptedString := hex.EncodeToString(encryptedBytes)
 
 	return encryptedString, nil
+}
 
+func AesEncryptBytesFixedIv(text []byte, key []byte, nonce []byte) (string, error) {
+	// generate a new aes cipher using our 32 byte long key
+	c, err := aes.NewCipher(key)
+	// if there are any errors, handle them
+	if err != nil {
+		return "", err
+	}
+
+	// gcm or Galois/Counter Mode, is a mode of operation
+	// for symmetric key cryptographic block ciphers
+	// - https://en.wikipedia.org/wiki/Galois/Counter_Mode
+	gcm, err := cipher.NewGCM(c)
+	// if any error generating new GCM
+	// handle them
+	if err != nil {
+		return "", err
+	}
+
+	encryptedBytes := gcm.Seal(nil, nonce, text, nil)
+	encryptedString := hex.EncodeToString(encryptedBytes)
+
+	return encryptedString, nil
 }
 
 func AesDecryptFixedIv(encryptedString string, key []byte, nonce []byte) (string, error) {
