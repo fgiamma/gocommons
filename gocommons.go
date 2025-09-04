@@ -1422,30 +1422,6 @@ func AesEncryptFixedIv(textString string, key []byte, nonce []byte) (string, err
 	return encryptedString, nil
 }
 
-func AesEncryptBytesFixedIv(text []byte, key []byte, nonce []byte) (string, error) {
-	// generate a new aes cipher using our 32 byte long key
-	c, err := aes.NewCipher(key)
-	// if there are any errors, handle them
-	if err != nil {
-		return "", err
-	}
-
-	// gcm or Galois/Counter Mode, is a mode of operation
-	// for symmetric key cryptographic block ciphers
-	// - https://en.wikipedia.org/wiki/Galois/Counter_Mode
-	gcm, err := cipher.NewGCM(c)
-	// if any error generating new GCM
-	// handle them
-	if err != nil {
-		return "", err
-	}
-
-	encryptedBytes := gcm.Seal(nil, nonce, text, nil)
-	encryptedString := hex.EncodeToString(encryptedBytes)
-
-	return encryptedString, nil
-}
-
 func AesDecryptFixedIv(encryptedString string, key []byte, nonce []byte) (string, error) {
 	ciphertext, err := hex.DecodeString(encryptedString)
 	if err != nil {
@@ -1469,6 +1445,48 @@ func AesDecryptFixedIv(encryptedString string, key []byte, nonce []byte) (string
 	}
 
 	return string(plaintext), nil
+}
+
+func AesEncryptBytesFixedIv(text []byte, key []byte, nonce []byte) ([]byte, error) {
+	// generate a new aes cipher using our 32 byte long key
+	c, err := aes.NewCipher(key)
+	// if there are any errors, handle them
+	if err != nil {
+		return nil, err
+	}
+
+	// gcm or Galois/Counter Mode, is a mode of operation
+	// for symmetric key cryptographic block ciphers
+	// - https://en.wikipedia.org/wiki/Galois/Counter_Mode
+	gcm, err := cipher.NewGCM(c)
+	// if any error generating new GCM
+	// handle them
+	if err != nil {
+		return nil, err
+	}
+
+	encryptedBytes := gcm.Seal(nil, nonce, text, nil)
+
+	return encryptedBytes, nil
+}
+
+func AesDecryptBytesFixedIv(ciphertext []byte, key []byte, nonce []byte) ([]byte, error) {
+	c, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	gcm, err := cipher.NewGCM(c)
+	if err != nil {
+		return nil, err
+	}
+
+	decoded, err := gcm.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return decoded, nil
 }
 
 func GetCryptoStuff(cryptoItem string) (string, []byte, error) {
