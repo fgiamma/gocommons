@@ -2058,3 +2058,26 @@ func GenerateIV() ([]byte, error) {
 	}
 	return iv, nil
 }
+
+func InitLogSystem() {
+	// ********************************************************************************
+	// Reading command line parameters
+	// ********************************************************************************
+	debugmode := flag.String("debugmode", "DEBUG", "Debug mode: <DEBUG, INFO, WARN, ERROR>")
+	flag.Parse()
+
+	// ********************************************************************************
+	// Init Log
+	// ********************************************************************************
+	logLevel := slog.LevelDebug
+	switch *debugmode {
+	case "INFO":
+		logLevel = slog.LevelInfo
+	case "WARN":
+		logLevel = slog.LevelWarn
+	case "ERROR":
+		logLevel = slog.LevelError
+	}
+
+	SetSLog(logLevel)
+}
