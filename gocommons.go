@@ -2081,3 +2081,11 @@ func InitLogSystem() {
 
 	SetSLog(logLevel)
 }
+
+func PrettyPrint(v any) string {
+	b, err := json.MarshalIndent(v, "", "  ")
+	if err != nil {
+		return ""
+	}
+	return string(b)
+}
