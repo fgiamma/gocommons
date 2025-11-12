@@ -43,6 +43,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	mysqlxx "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"github.com/oklog/ulid"
 	"golang.org/x/crypto/scrypt"
 	"golang.org/x/text/cases"
@@ -177,6 +178,11 @@ type Translation struct {
 }
 
 type LogWriter struct {
+}
+
+type Response struct {
+	Code string `json:"code"`
+	Data any    `json:"data"`
 }
 
 type CustomError struct {
@@ -2088,4 +2094,11 @@ func PrettyPrint(v any) string {
 		return ""
 	}
 	return string(b)
+}
+
+func WriteEchoResponse(c echo.Context, code string, data any) error {
+	return c.JSON(http.StatusOK, &Response{
+		Code: code,
+		Data: data,
+	})
 }
