@@ -2133,3 +2133,46 @@ func InitEchoListParameters(c echo.Context) (map[string]any, map[string]any) {
 
 	return data, params
 }
+
+func CheckMultipleValuesEcho(db *gorm.DB, tableName string, c echo.Context) error {
+	checks := new(CheckArray)
+	if err := c.Bind(checks); err != nil {
+		return WriteEchoResponse(c, "ko", "error binding user")
+	}
+
+	var extraSql string = ""
+	if checks.Uid != "" {
+		extraSql = " AND uniqueid <> '" + checks.Uid + "'"
+	}
+
+	checkResults := make([]CheckResult, 0)
+
+	for i := 0; i < len(checks.Checks); i++ {
+		item := checks.Checks[i]
+		if item.Key == "" || item.Value == "" {
+			return WriteEchoResponse(c, "ko", "Error evaluating items")
+		}
+
+		sql := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE %s=?%s;", tableName, item.Key, extraSql)
+
+		// sql := "SELECT COUNT(*) FROM " + tableName + " WHERE " + item.Key + "='" + item.Value + "'" + extraSql + ";"
+		var counter int
+		db.Raw(sql, item.Value).Scan(&counter)
+
+		var returnValue bool = true
+		if counter > 0 {
+			returnValue = false
+		}
+
+		var checkResult *CheckResult = new(CheckResult)
+		checkResult.Key = item.Key
+		checkResult.ReturnValue = returnValue
+
+		checkResults = append(checkResults, *checkResult)
+	}
+
+	returnObject := make(map[string]any)
+	returnObject["element"] = checkResults
+
+	return WriteEchoResponse(c, "ok", returnObject)
+}
