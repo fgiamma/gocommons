@@ -2102,3 +2102,34 @@ func WriteEchoResponse(c echo.Context, code string, data any) error {
 		Data: data,
 	})
 }
+
+func InitEchoListParameters(c echo.Context) (map[string]any, map[string]any) {
+	page, err := strconv.Atoi(c.QueryParam("page"))
+	if err != nil {
+		page = 0
+	}
+
+	pageSize, err := strconv.Atoi(c.QueryParam("page_size"))
+	if err != nil {
+		pageSize = 10
+	}
+
+	sortColumn := c.QueryParam("sort_column")
+	sortOrder := c.QueryParam("sort_order")
+
+	// Search parameters
+	whereCondition := "WHERE 1=@dummy"
+	params := make(map[string]any)
+	params["dummy"] = 1
+
+	data := map[string]any{
+		"SortColumn":     sortColumn,
+		"SortOrder":      sortOrder,
+		"Page":           page,
+		"PageSize":       pageSize,
+		"StartLimit":     page * pageSize,
+		"WhereCondition": whereCondition,
+	}
+
+	return data, params
+}
