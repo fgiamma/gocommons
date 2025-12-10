@@ -1789,7 +1789,7 @@ func DeleteFromDoS3(s3data DoS3Data, objectName string) error {
 
 func DownloadFromDoS3(s3data DoS3Data, objectName string) (string, error) {
 	// Create a custom resolver for DigitalOcean Spaces
-	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...any) (aws.Endpoint, error) {
 		return aws.Endpoint{
 			URL: s3data.SpacesUrl,
 		}, nil
@@ -1819,7 +1819,7 @@ func DownloadFromDoS3(s3data DoS3Data, objectName string) (string, error) {
 	pointPosition := strings.LastIndex(objectName, ".")
 	extension := objectName[pointPosition:]
 
-	fileName := fmt.Sprintf("/tmp/%s%s", GetUid(), extension)
+	fileName := fmt.Sprintf("/tmp/%s%s", GetUlid(), extension)
 
 	defer result.Body.Close()
 	file, err := os.Create(fileName)
