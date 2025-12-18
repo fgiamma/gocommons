@@ -2178,7 +2178,7 @@ func CheckMultipleValuesEcho(db *gorm.DB, tableName string, c echo.Context) erro
 	return WriteEchoResponse(c, "ok", returnObject)
 }
 
-func ActualSendEmailWithAttachment(
+func SendEmailWithAttachment(
 	smtpServer string,
 	smtpPort string,
 	smtpUser string,
@@ -2204,7 +2204,7 @@ func ActualSendEmailWithAttachment(
 	encoded := make([]byte, base64.StdEncoding.EncodedLen(len(attachment)))
 	base64.StdEncoding.Encode(encoded, attachment)
 
-	boundary := "BOUNDARY123456789"
+	boundary := GetUlid()
 
 	headers := map[string]string{
 		"From":         from,
