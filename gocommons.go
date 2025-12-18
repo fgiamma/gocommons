@@ -22,6 +22,7 @@ import (
 
 	"crypto/md5"
 	cryptorand "crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -2175,4 +2176,76 @@ func CheckMultipleValuesEcho(db *gorm.DB, tableName string, c echo.Context) erro
 	returnObject["element"] = checkResults
 
 	return WriteEchoResponse(c, "ok", returnObject)
+}
+
+func ActualSendEmailWithAttachment(
+	smtpServer string,
+	smtpPort string,
+	smtpUser string,
+	smtpPassword string,
+	from string,
+	to []string,
+	subject string,
+	htmlMessage string,
+	attachmentPath string,
+) error {
+
+	addr := smtpServer + ":" + smtpPort
+
+	// Read attachment
+	attachment, err := os.ReadFile(attachmentPath)
+	if err != nil {
+		return err
+	}
+
+	filename := filepath.Base(attachmentPath)
+
+	// Encode attachment
+	encoded := make([]byte, base64.StdEncoding.EncodedLen(len(attachment)))
+	base64.StdEncoding.Encode(encoded, attachment)
+
+	boundary := "BOUNDARY123456789"
+
+	headers := map[string]string{
+		"From":         from,
+		"To":           strings.Join(to, ", "),
+		"Subject":      subject,
+		"MIME-Version": "1.0",
+		"Content-Type": "multipart/mixed; boundary=" + boundary,
+	}
+
+	var msg bytes.Buffer
+
+	// Headers
+	for k, v := range headers {
+		msg.WriteString(fmt.Sprintf("%s: %s\r\n", k, v))
+	}
+	msg.WriteString("\r\n")
+
+	// HTML body
+	msg.WriteString("--" + boundary + "\r\n")
+	msg.WriteString("Content-Type: text/html; charset=\"UTF-8\"\r\n")
+	msg.WriteString("Content-Transfer-Encoding: 7bit\r\n\r\n")
+	msg.WriteString(htmlMessage + "\r\n")
+
+	// Attachment
+	msg.WriteString("--" + boundary + "\r\n")
+	msg.WriteString("Content-Type: application/octet-stream\r\n")
+	msg.WriteString("Content-Transfer-Encoding: base64\r\n")
+	msg.WriteString("Content-Disposition: attachment; filename=\"" + filename + "\"\r\n\r\n")
+
+	// Base64 must be split into lines (RFC 2045)
+	for i := 0; i < len(encoded); i += 76 {
+		end := i + 76
+		if end > len(encoded) {
+			end = len(encoded)
+		}
+		msg.Write(encoded[i:end])
+		msg.WriteString("\r\n")
+	}
+
+	msg.WriteString("--" + boundary + "--")
+
+	auth := smtp.PlainAuth("", smtpUser, smtpPassword, smtpServer)
+	return smtp.SendMail(addr, auth, from, to, msg.Bytes())
 }
