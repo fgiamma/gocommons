@@ -1928,9 +1928,10 @@ func NewRedditSearch(clientID, clientSecret, userAgent string, postLimit int) *R
 	}
 }
 
-func CheckFields(data interface{}, fields []string) (bool, []string) {
+func CheckFields(data any, fields []string) (bool, []string) {
 	val := reflect.ValueOf(data)
-	if val.Kind() == reflect.Ptr {
+	// if val.Kind() == reflect.Ptr {
+	if val.Kind() == reflect.Pointer {
 		val = val.Elem()
 	}
 
@@ -2138,7 +2139,7 @@ func InitEchoListParameters(c echo.Context) (map[string]any, map[string]any) {
 func CheckMultipleValuesEcho(db *gorm.DB, tableName string, c echo.Context) error {
 	checks := new(CheckArray)
 	if err := c.Bind(checks); err != nil {
-		return WriteEchoResponse(c, "ko", "error binding user")
+		return WriteEchoResponse(c, "ko", "error binding checks")
 	}
 
 	var extraSql string = ""
