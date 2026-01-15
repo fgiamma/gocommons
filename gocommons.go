@@ -1332,6 +1332,10 @@ func ConfigApp(mode int) (*gorm.DB, *sql.DB, error) {
 	return ActualConfigApp(mode, true)
 }
 
+func ConfigAppWithTimeMode(mode int, localtTime bool) (*gorm.DB, *sql.DB, error) {
+	return ActualConfigApp(mode, localtTime)
+}
+
 func ActualConfigApp(mode int, localTime bool) (*gorm.DB, *sql.DB, error) {
 	log.SetFlags(log.Lshortfile)
 	log.SetOutput(new(LogWriter))
