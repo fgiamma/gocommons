@@ -2241,10 +2241,7 @@ func SendEmailWithAttachment(
 
 	// Base64 must be split into lines (RFC 2045)
 	for i := 0; i < len(encoded); i += 76 {
-		end := i + 76
-		if end > len(encoded) {
-			end = len(encoded)
-		}
+		end := min(i+76, len(encoded))
 		msg.Write(encoded[i:end])
 		msg.WriteString("\r\n")
 	}
@@ -2253,4 +2250,27 @@ func SendEmailWithAttachment(
 
 	auth := smtp.PlainAuth("", smtpUser, smtpPassword, smtpServer)
 	return smtp.SendMail(addr, auth, from, to, msg.Bytes())
+}
+
+func ParseInLocation(dateLayout string, dateToBeParsed string, locale string) (*time.Time, error) {
+	if dateLayout == "" {
+		dateLayout = "2006-01-02 15:04:05"
+	}
+
+	if dateToBeParsed == "" {
+		return nil, fmt.Errorf("invalid date")
+	}
+
+	// Create last update date
+	loc, err := time.LoadLocation(countryTz[locale])
+	if err != nil {
+		return nil, fmt.Errorf("error creating location: %w", err)
+	}
+
+	lastUpdate, err := time.ParseInLocation(dateLayout, dateToBeParsed, loc)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing time: %w", err)
+	}
+
+	return &lastUpdate, nil
 }
