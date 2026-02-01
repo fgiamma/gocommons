@@ -275,6 +275,19 @@ type RedditResult struct {
 	URL   string `json:"url"`
 }
 
+type NotificationMessage struct {
+	Subject      string   `json:"subject"`
+	Message      string   `json:"message"`
+	Ttl          int      `json:"ttl"`
+	Force        bool     `json:"force"`
+	Destinations []string `json:"destinations"`
+}
+
+type NotificationResponse struct {
+	Code string `json:"code"`
+	Data string `json:"data"`
+}
+
 var DateLayout string = "2006-01-02 15:04:05"
 var CompactDateLayout string = "20060102150405"
 
@@ -2273,4 +2286,106 @@ func ParseInLocation(dateLayout string, dateToBeParsed string, locale string) (*
 	}
 
 	return &lastUpdate, nil
+}
+
+func SendExternalNotification(db *gorm.DB, subject string, message string, force bool, destinations []string) error {
+	externalNotificationUrl := GetDbParameter(db, "external_notification_url")
+	defaultNotificationTtl := GetIntDbParameter(db, "default_notification_ttl")
+	externalNotificationToken := GetDbParameter(db, "external_notification_token")
+
+	if externalNotificationUrl == "" || externalNotificationToken == "" || defaultNotificationTtl == 0 {
+		return fmt.Errorf("invalid configuration parameters")
+	}
+
+	notificatioMessage := &NotificationMessage{
+		Subject:      subject,
+		Message:      message,
+		Ttl:          defaultNotificationTtl,
+		Force:        force,
+		Destinations: destinations,
+	}
+
+	externalNotificationUrl = fmt.Sprintf("%s/v1/sendnotification", externalNotificationUrl)
+
+	// Context with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	client := &http.Client{
+		Timeout: 20 * time.Second,
+	}
+
+	// Marshal JSON
+	body, err := json.Marshal(notificatioMessage)
+	if err != nil {
+		return fmt.Errorf("error during json marshal: %w", err)
+	}
+
+	// Create request with context
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		externalNotificationUrl,
+		bytes.NewBuffer(body),
+	)
+
+	if err != nil {
+		return fmt.Errorf("error creating request: %w", err)
+	}
+
+	// Headers
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Authorization", "Bearer "+externalNotificationToken)
+
+	// Execute request
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("error sending request: %w", err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf(
+				"http error %d (%s), failed to read body: %w",
+				resp.StatusCode,
+				resp.Status,
+				err,
+			)
+		}
+
+		bodyText := strings.TrimSpace(string(bodyBytes))
+
+		if bodyText != "" {
+			return fmt.Errorf(
+				"http error %d (%s): %s",
+				resp.StatusCode,
+				resp.Status,
+				bodyText,
+			)
+		}
+
+		return fmt.Errorf(
+			"http error %d (%s)",
+			resp.StatusCode,
+			resp.Status,
+		)
+	}
+
+	// Best effort decode error body
+	var notificationResponse NotificationResponse
+
+	err = json.NewDecoder(resp.Body).Decode(&notificationResponse)
+	if err != nil {
+		return err
+	}
+
+	if notificationResponse.Code == "ko" {
+		return fmt.Errorf("error returned by server: %s", notificationResponse.Data)
+	}
+
+	return nil
 }
