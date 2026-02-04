@@ -2440,9 +2440,6 @@ func DeleteMonthlyPartition(db *gorm.DB, schema string, parentTable string, date
 		date.Format("200601"),
 	)
 
-	// start := time.Date(date.Year(), date.Month(), 1, 0, 0, 0, 0, time.UTC)
-	// end := start.AddDate(0, 1, 0)
-
 	var exists int
 	err := db.Raw(`
 		SELECT 1
@@ -2455,8 +2452,6 @@ func DeleteMonthlyPartition(db *gorm.DB, schema string, parentTable string, date
 	if err != nil {
 		return err
 	}
-
-	slog.Debug(fmt.Sprintf("EXISTO... %d", exists))
 
 	if exists == 0 {
 		return nil
