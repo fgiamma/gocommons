@@ -2390,13 +2390,7 @@ func SendExternalNotification(db *gorm.DB, subject string, message string, force
 	return nil
 }
 
-func EnsureMonthlyPartition(
-	db *gorm.DB,
-	schema string,
-	parentTable string,
-	date time.Time,
-) error {
-
+func EnsureMonthlyPartition(db *gorm.DB, schema string, parentTable string, date time.Time) error {
 	partitionName := fmt.Sprintf(
 		"%s_%s",
 		parentTable,
@@ -2435,6 +2429,40 @@ func EnsureMonthlyPartition(
 		start.Format("2006-01-02"),
 		end.Format("2006-01-02"),
 	)
+
+	return db.Exec(sql).Error
+}
+
+func DeleteMonthlyPartition(db *gorm.DB, schema string, parentTable string, date time.Time) error {
+	partitionName := fmt.Sprintf(
+		"%s_%s",
+		parentTable,
+		date.Format("200601"),
+	)
+
+	// start := time.Date(date.Year(), date.Month(), 1, 0, 0, 0, 0, time.UTC)
+	// end := start.AddDate(0, 1, 0)
+
+	var exists int
+	err := db.Raw(`
+		SELECT 1
+		FROM pg_class c
+		JOIN pg_namespace n ON n.oid = c.relnamespace
+		WHERE c.relname = ?
+		  AND n.nspname = ?;
+	`, partitionName, schema).Scan(&exists).Error
+
+	if err != nil {
+		return err
+	}
+
+	slog.Debug(fmt.Sprintf("EXISTO... %d", exists))
+
+	if exists == 0 {
+		return nil
+	}
+
+	sql := fmt.Sprintf("DROP TABLE IF EXISTS %s;", partitionName)
 
 	return db.Exec(sql).Error
 }
