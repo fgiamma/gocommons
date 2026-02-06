@@ -882,6 +882,7 @@ func InitListParameters(r *http.Request) (map[string]any, map[string]any) {
 		"StartLimit":     page * pageSize,
 		"WhereCondition": whereCondition,
 		"JoinCondition":  "",
+		"SelectExtras":   "",
 	}
 
 	return data, params
