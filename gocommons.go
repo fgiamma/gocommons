@@ -72,13 +72,13 @@ type S3Data struct {
 }
 
 type ResponseObject struct {
-	Code string      `json:"code"`
-	Data interface{} `json:"data"`
+	Code string `json:"code"`
+	Data any    `json:"data"`
 }
 
 type ListResponseObject struct {
-	TotalRows   int         `json:"totalRows"`
-	CurrentPage interface{} `json:"currentPage"`
+	TotalRows   int `json:"totalRows"`
+	CurrentPage any `json:"currentPage"`
 }
 
 type Check struct {
@@ -122,11 +122,11 @@ type SessionListParameters struct {
 	SortOrder  string
 	Page       int
 	PageSize   int
-	ExtraData  map[string]interface{}
+	ExtraData  map[string]any
 }
 
 type SearchParams struct {
-	Elements interface{} `json:"elements"`
+	Elements any `json:"elements"`
 }
 
 var countryTz = map[string]string{
@@ -247,7 +247,7 @@ func (t *Telegram) SendMessage(messageString string) error {
 	return nil
 }
 
-type JSONB map[string]interface{}
+type JSONB map[string]any
 
 // Value Marshal
 func (jsonField JSONB) Value() (driver.Value, error) {
@@ -255,7 +255,7 @@ func (jsonField JSONB) Value() (driver.Value, error) {
 }
 
 // Scan Unmarshal
-func (jsonField *JSONB) Scan(value interface{}) error {
+func (jsonField *JSONB) Scan(value any) error {
 	data, ok := value.([]byte)
 	if !ok {
 		return errors.New("type assertion to []byte failed")
@@ -540,7 +540,7 @@ func CheckMultipleValues(db *gorm.DB, tableName string, w http.ResponseWriter, r
 		checkResults = append(checkResults, *checkResult)
 	}
 
-	returnObject := make(map[string]interface{})
+	returnObject := make(map[string]any)
 	returnObject["element"] = checkResults
 
 	WriteValidResponse(w, "ok", returnObject)
@@ -767,7 +767,7 @@ func CreateListSql(sql string, sortColumn string, sortOrder string, page int, pa
 	return sql
 }
 
-func SaveListParametersInSession(sessionManager *scs.SessionManager, r *http.Request, prefix string, data map[string]interface{}, params map[string]interface{}) {
+func SaveListParametersInSession(sessionManager *scs.SessionManager, r *http.Request, prefix string, data map[string]any, params map[string]any) {
 	sortColumn, ok := data["SortColumn"].(string)
 
 	if !ok {
@@ -820,7 +820,7 @@ func GetListParametersFromSession(sessionManager *scs.SessionManager, r *http.Re
 		sessionListParameters.PageSize = defaultGridSize
 	}
 
-	extraData := make(map[string]interface{})
+	extraData := make(map[string]any)
 
 	for _, key := range extraKeys {
 		if sessionManager.Exists(r.Context(), prefix+"-"+key) {
@@ -833,7 +833,7 @@ func GetListParametersFromSession(sessionManager *scs.SessionManager, r *http.Re
 	return *sessionListParameters
 }
 
-func StringReplacer(templateString string, elements map[string]interface{}) string {
+func StringReplacer(templateString string, elements map[string]any) string {
 	t := template.Must(template.New("sql").Parse(templateString))
 
 	builder := &strings.Builder{}
@@ -845,7 +845,7 @@ func StringReplacer(templateString string, elements map[string]interface{}) stri
 	return s
 }
 
-func InitListParameters(r *http.Request) (map[string]interface{}, map[string]interface{}) {
+func InitListParameters(r *http.Request) (map[string]any, map[string]any) {
 	// Get list query parameters (lower case)
 	page, err := strconv.Atoi(r.URL.Query().Get("page"))
 	if err != nil {
@@ -862,10 +862,10 @@ func InitListParameters(r *http.Request) (map[string]interface{}, map[string]int
 
 	// Search parameters
 	whereCondition := "WHERE 1=@dummy"
-	params := make(map[string]interface{})
+	params := make(map[string]any)
 	params["dummy"] = 1
 
-	data := map[string]interface{}{
+	data := map[string]any{
 		"SortColumn":     sortColumn,
 		"SortOrder":      sortOrder,
 		"Page":           page,
@@ -877,7 +877,7 @@ func InitListParameters(r *http.Request) (map[string]interface{}, map[string]int
 	return data, params
 }
 
-func InitListParametersSpg(r *http.Request) (map[string]interface{}, map[string]interface{}) {
+func InitListParametersSpg(r *http.Request) (map[string]any, map[string]any) {
 	// Get list query parameters (lower case)
 	page, err := strconv.Atoi(r.URL.Query().Get("page"))
 	if err != nil {
@@ -894,10 +894,10 @@ func InitListParametersSpg(r *http.Request) (map[string]interface{}, map[string]
 
 	// Search parameters
 	whereCondition := "WHERE 1=@dummy"
-	params := make(map[string]interface{})
+	params := make(map[string]any)
 	params["dummy"] = 1
 
-	data := map[string]interface{}{
+	data := map[string]any{
 		"SortColumn":     sortColumn,
 		"SortOrder":      sortOrder,
 		"Page":           page,
@@ -1121,9 +1121,9 @@ func CompareDates(t1 time.Time, t2 time.Time) bool {
 // 	return localizedString
 // }
 
-// func GetTranslations(bundle *i18n.Bundle, keys []string, language string) map[string]interface{} {
+// func GetTranslations(bundle *i18n.Bundle, keys []string, language string) map[string]any {
 // 	localizer := i18n.NewLocalizer(bundle, language)
-// 	translations := make(map[string]interface{})
+// 	translations := make(map[string]any)
 
 // 	for _, key := range keys {
 // 		translations[key] = GetLocalizedString(localizer, key)
@@ -1132,7 +1132,7 @@ func CompareDates(t1 time.Time, t2 time.Time) bool {
 // 	return translations
 // }
 
-func InitTranslationsAtStartupTime(db *gorm.DB, localeFilePosition string) (map[string]interface{}, error) {
+func InitTranslationsAtStartupTime(db *gorm.DB, localeFilePosition string) (map[string]any, error) {
 	var locales []Locale
 	sql := `SELECT * FROM locales;`
 	result := db.Raw(sql).Scan(&locales)
@@ -1141,9 +1141,9 @@ func InitTranslationsAtStartupTime(db *gorm.DB, localeFilePosition string) (map[
 		return nil, errors.New("can't open locale table")
 	}
 
-	translations := make(map[string]interface{})
+	translations := make(map[string]any)
 	for _, locale := range locales {
-		translations[locale.Lang] = make(map[string]interface{})
+		translations[locale.Lang] = make(map[string]any)
 	}
 
 	var localeStrings []LocaleString
@@ -1162,7 +1162,7 @@ func InitTranslationsAtStartupTime(db *gorm.DB, localeFilePosition string) (map[
 		}
 
 		for _, jsonElement := range jsonData {
-			elements, ok := translations[jsonElement.LangCode].(map[string]interface{})
+			elements, ok := translations[jsonElement.LangCode].(map[string]any)
 			if !ok {
 				return nil, err
 			}
@@ -1568,8 +1568,8 @@ func GetNumberColValue[T float64 | float32 | int](row []string, position int, mo
 	}
 }
 
-func StructToMap(input interface{}) (map[string]interface{}, error) {
-	output := make(map[string]interface{})
+func StructToMap(input any) (map[string]any, error) {
+	output := make(map[string]any)
 	v := reflect.ValueOf(input)
 
 	for i := 0; i < v.NumField(); i++ {
@@ -1771,7 +1771,7 @@ func SendToDoS3(s3data DoS3Data, fileName string, objectName string) error {
 
 func DeleteFromDoS3(s3data DoS3Data, objectName string) error {
 	// Create a custom resolver for DigitalOcean Spaces
-	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...any) (aws.Endpoint, error) {
 		return aws.Endpoint{
 			URL: s3data.SpacesUrl,
 		}, nil
@@ -1883,7 +1883,7 @@ func (rs *RedditSearch) GetAccessToken() (string, error) {
 	defer resp.Body.Close()
 
 	body, _ := io.ReadAll(resp.Body)
-	var result map[string]interface{}
+	var result map[string]any
 	json.Unmarshal(body, &result)
 
 	token, ok := result["access_token"].(string)
@@ -1912,17 +1912,17 @@ func (rs *RedditSearch) SearchReddit(query string, token string) ([]RedditResult
 	defer resp.Body.Close()
 
 	body, _ := io.ReadAll(resp.Body)
-	var result map[string]interface{}
+	var result map[string]any
 	json.Unmarshal(body, &result)
 
-	posts, ok := result["data"].(map[string]interface{})["children"].([]interface{})
+	posts, ok := result["data"].(map[string]any)["children"].([]any)
 	if !ok {
 		return nil, err
 	}
 
 	results := make([]RedditResult, 0)
 	for _, p := range posts {
-		postData := p.(map[string]interface{})["data"].(map[string]interface{})
+		postData := p.(map[string]any)["data"].(map[string]any)
 
 		result := RedditResult{
 			Title: postData["title"].(string),
