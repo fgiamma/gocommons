@@ -321,7 +321,7 @@ func GetUid() string {
 
 func GetUidList(numberOfElements int) []string {
 	uids := make([]string, numberOfElements)
-	for i := 0; i < numberOfElements; i++ {
+	for i := range numberOfElements {
 		uids[i] = GetUid()
 	}
 
@@ -362,7 +362,7 @@ func GetUlid() string {
 
 func GetUlidList(numberOfElements int) []string {
 	ulids := make([]string, numberOfElements)
-	for i := 0; i < numberOfElements; i++ {
+	for i := range numberOfElements {
 		ulids[i] = GetUlid()
 	}
 
@@ -1995,8 +1995,9 @@ func isZero(v reflect.Value) bool {
 	}
 }
 
+//go:fix inline
 func IntPtr(i int) *int {
-	return &i
+	return new(i)
 }
 
 type CustomHandler struct {
