@@ -1058,6 +1058,8 @@ func ActualInitData(configFolder string, mode bool) (ConfigData, *gorm.DB, *sql.
 		return ConfigData{}, nil, nil, err
 	}
 
+	sqlDB.SetConnMaxLifetime(time.Hour * 1)
+
 	return conf, db, sqlDB, nil
 }
 
@@ -1099,6 +1101,8 @@ func InitPostgresData(configFolder string) (ConfigData, *gorm.DB, *sql.DB, error
 	if err = sqlDB.Ping(); err != nil {
 		return ConfigData{}, nil, nil, err
 	}
+
+	sqlDB.SetConnMaxLifetime(time.Hour * 1)
 
 	return conf, db, sqlDB, nil
 }
