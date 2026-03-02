@@ -1103,6 +1103,7 @@ func InitPostgresData(configFolder string) (ConfigData, *gorm.DB, *sql.DB, error
 	}
 
 	sqlDB.SetConnMaxLifetime(time.Hour * 1)
+	sqlDB.SetConnMaxIdleTime(5 * time.Minute)
 
 	return conf, db, sqlDB, nil
 }
