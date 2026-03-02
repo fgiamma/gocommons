@@ -1585,6 +1585,16 @@ func StructToMap(input any) (map[string]any, error) {
 	return output, nil
 }
 
+func StructToMap2(s any) (map[string]any, error) {
+	data, err := json.Marshal(s)
+	if err != nil {
+		return nil, err
+	}
+	var result map[string]any
+	err = json.Unmarshal(data, &result)
+	return result, err
+}
+
 type S3PutObjectAPI interface {
 	PutObject(ctx context.Context,
 		params *s3.PutObjectInput,
