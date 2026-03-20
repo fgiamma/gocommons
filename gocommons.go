@@ -27,6 +27,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/big"
 	"math/rand"
 
 	"net/http"
@@ -2476,4 +2477,19 @@ func DeleteMonthlyPartition(db *gorm.DB, schema string, parentTable string, date
 	sql := fmt.Sprintf("DROP TABLE IF EXISTS %s;", partitionName)
 
 	return db.Exec(sql).Error
+}
+
+func GetRandomAccessCode(codeLength int) (string, error) {
+	numbers := make([]int64, 0)
+	for _ = range codeLength {
+		nBig, err := cryptorand.Int(cryptorand.Reader, big.NewInt(10))
+		if err != nil {
+			return "", err
+		}
+		number := nBig.Int64()
+		numbers = append(numbers, number)
+	}
+
+	resultString := strings.Trim(strings.Join(strings.Fields(fmt.Sprint(numbers)), ""), "[]")
+	return resultString, nil
 }
